@@ -9,7 +9,7 @@ export function ServicesEditorial() {
       <article className="service-feature">
         <div className="service-feature__meta"><span>01 · Core service</span><span>Permits Hub</span></div>
         <div className="service-feature__drawing" aria-hidden="true"><div className="service-feature__sheet"><span>PLANNING APPLICATION</span><i /><i /><i /><b>PH</b></div><div className="service-feature__stamp">REVIEW<br />THE PATHWAY</div></div>
-        <div className="service-feature__copy"><span>01 / 06</span><h3>{lead.title}</h3><p>{lead.description}</p><Link to={`/services#${lead.id}`} aria-label={`Learn about ${lead.title}`}><ArrowUpRight size={22} /></Link></div>
+        <div className="service-feature__copy"><span>01 / 0{services.length}</span><h3>{lead.title}</h3><p>{lead.description}</p><Link to={`/services#${lead.id}`} aria-label={`Learn about ${lead.title}`}><ArrowUpRight size={22} /></Link></div>
       </article>
       <div className="service-index">
         {services.slice(1).map(service => (

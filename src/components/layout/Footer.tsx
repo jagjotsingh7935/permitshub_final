@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowUpRight } from 'lucide-react'
-import { contactEmail, contactPhone, contactPhoneHref, facebookUrl, services } from '../../content'
+import { contactEmail, contactPhone, contactPhoneHref, disclaimer, facebookUrl, services } from '../../content'
 import { Brand } from './Brand'
 
 export function Footer() {
@@ -10,7 +10,7 @@ export function Footer() {
         <div className="footer-top">
           <div className="footer-brand">
             <Brand inverse />
-            <p>Practical town planning guidance for the journey from first idea to the next stage of development.</p>
+            <p>End to end project development services, from town planning to construction completion.</p>
             <div className="footer-contact">
               <a href={contactPhoneHref}>{contactPhone}</a>
               <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
@@ -35,9 +35,10 @@ export function Footer() {
             </div>
           </div>
         </div>
+        <p className="footer-disclaimer"><strong>Disclaimer –</strong> {disclaimer}</p>
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} Permits Hub Pty Ltd. All rights reserved.</span>
-          <span>Town planning and development guidance in Victoria, Australia</span>
+          <span>Town planning and project consultation · Melbourne, Australia</span>
         </div>
       </div>
     </footer>

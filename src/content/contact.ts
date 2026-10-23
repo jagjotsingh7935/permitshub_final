@@ -37,5 +37,5 @@ export const servicesFaqs: Faq[] = [
   { status: 'draft', question: 'Can Permits Hub guarantee a permit?', answer: 'No planner can guarantee a council decision. The aim is a well-prepared application that addresses the relevant planning controls clearly.' },
   { status: 'draft', question: 'What is a request for further information?', answer: 'Council may ask for more detail before it can assess an application. There is usually a deadline to respond, so it helps to act on it promptly.' },
   { status: 'draft', question: 'Do I need other consultants?', answer: 'It depends on the site and proposal. Traffic, acoustic, arborist or heritage input is common. The planning review can identify what is likely to be needed.' },
-  { status: 'draft', question: 'Do you prepare building permits?', answer: 'Building permits are issued by a building surveyor. Development coordination can help connect planning conditions to that next stage.' },
+  { status: 'draft', question: 'Do you prepare building permits?', answer: 'Permits Hub provides design and documentation to support a building permit application. Building permits themselves are issued by a building surveyor.' },
 ]

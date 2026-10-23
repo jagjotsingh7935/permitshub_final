@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, ArrowUpRight, Check, CircleArrowRight, ExternalLink } from 'lucide-react'
 import { ArchitecturalHero } from '../components/home/ArchitecturalHero'
+import { PillarsStrip } from '../components/home/PillarsStrip'
 import { ProjectStarter } from '../components/home/ProjectStarter'
 import { ServicesEditorial } from '../components/home/ServicesEditorial'
+import { PortfolioSectors } from '../components/projects/PortfolioSectors'
 import { ProjectShowcase } from '../components/projects/ProjectShowcase'
 import { SiteEvolution } from '../components/about/SiteEvolution'
 import { WithCoordination, WithoutCoordination } from '../components/about/CoordinationDiagram'
@@ -26,6 +28,8 @@ export default function Home() {
       {/* 1 · Preserved 3D hero */}
       <ArchitecturalHero />
 
+      <PillarsStrip />
+
       {/* 2 · Introduction and who Permits Hub helps */}
       <section className="home-intro" id="planning-content" aria-labelledby="intro-title">
         <div className="container home-intro__grid">
@@ -35,7 +39,7 @@ export default function Home() {
           </Reveal>
           <div className="home-intro__body">
             <Reveal>
-              <p>Permits Hub is a Victorian town planning business. The team helps people understand what a site allows, prepare planning permit applications and work through council’s assessment with a clear view of the next step.</p>
+              <p>With over 16 years of town planning experience, Permits Hub is based in Melbourne. Our multi-disciplinary services provide all-in-one-stop development solutions, from town planning to construction completion.</p>
               <p>Public project updates include childcare centres in St Leonards and Winchelsea and a swim school in Ballarat.</p>
             </Reveal>
             <h3 className="home-intro__subhead">Who we help</h3>
@@ -163,6 +167,7 @@ export default function Home() {
             <Reveal><SectionIntro id="projects-title" eyebrow="Project updates" title={<>Ideas taking shape<br /><em>across Victoria.</em></>} body="Selected updates shared publicly by Permits Hub." /></Reveal>
             <Reveal className="section-head__action"><Link to="/projects" className="text-link">Explore our work <CircleArrowRight size={22} /></Link></Reveal>
           </div>
+          <Reveal><PortfolioSectors /></Reveal>
           <Reveal><ProjectShowcase /></Reveal>
           <p className="project-note">Images and details are from Permits Hub’s public Facebook updates. The visuals are architectural renders and announcement artwork, not photographs of completed buildings.</p>
         </div>

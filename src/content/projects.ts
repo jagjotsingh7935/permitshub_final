@@ -1,8 +1,8 @@
 import { sources } from './site'
 import type { SourceLink } from './types'
 
-export type ProjectCategory = 'Childcare' | 'Community & recreation' | 'Commercial' | 'Industrial' | 'Residential'
-export const projectCategories: ProjectCategory[] = ['Childcare', 'Community & recreation', 'Commercial', 'Industrial', 'Residential']
+export type ProjectCategory = 'Residential' | 'Commercial' | 'Child care' | 'Warehouse developments' | 'Subdivisions' | 'Community & recreation'
+export const projectCategories: ProjectCategory[] = ['Residential', 'Commercial', 'Child care', 'Warehouse developments', 'Subdivisions', 'Community & recreation']
 
 /** Use these carefully: a status must match what the source actually says. */
 export type ProjectStatus = 'in-planning' | 'permit-approved' | 'under-construction' | 'completed'
@@ -65,7 +65,7 @@ export const verifiedProjects: VerifiedProject[] = [
     title: '94-place childcare centre',
     place: 'St Leonards, Greater Geelong',
     region: 'Greater Geelong',
-    category: 'Childcare',
+    category: 'Child care',
     status: 'permit-approved',
     statusNote: 'Reported as approved on 12 June 2025',
     updateDate: '2025-06-12',
@@ -119,7 +119,7 @@ export const verifiedProjects: VerifiedProject[] = [
     title: '100-place childcare centre in Winchelsea',
     place: 'Winchelsea, Victoria',
     region: 'Surf Coast',
-    category: 'Childcare',
+    category: 'Child care',
     status: 'permit-approved',
     statusNote: 'Planning & building permits reported on 10 June 2025',
     updateDate: '2025-06-10',
@@ -289,7 +289,7 @@ export const demoProjects: DemoProject[] = [
     slug: 'demo-warehouse-extension',
     title: 'Warehouse extension and loading bay',
     place: 'Illustrative industrial estate',
-    category: 'Industrial',
+    category: 'Warehouse developments',
     status: 'under-construction',
     highlight: '+1,200 m²',
     summary: 'A fictional scenario: an existing warehouse adds a storage bay and a new loading area on land at the rear of the lot.',
@@ -451,7 +451,7 @@ export const projects: Project[] = [...verifiedProjects, ...demoProjects]
 
 /** General, educational guidance shown under "Typical considerations for this project type". Draft. */
 export const typicalConsiderations: Record<ProjectCategory, string[]> = {
-  Childcare: [
+  'Child care': [
     'Traffic, drop-off and pick-up arrangements at peak times',
     'Noise from outdoor play areas and mechanical plant',
     'Car parking for staff and families',
@@ -473,7 +473,7 @@ export const typicalConsiderations: Record<ProjectCategory, string[]> = {
     'Hours of operation and amenity',
     'Waste collection and servicing',
   ],
-  Industrial: [
+  'Warehouse developments': [
     'Truck access and swept paths',
     'Setbacks and landscaping to the street',
     'Stormwater and drainage',
@@ -487,6 +487,22 @@ export const typicalConsiderations: Record<ProjectCategory, string[]> = {
     'Driveways, car parking and access',
     'Trees on and around the site',
   ],
+  Subdivisions: [
+    'Lot sizes, shapes and frontages under the planning scheme',
+    'Access, roads and servicing for each lot',
+    'Easements, covenants and restrictions on title',
+    'Stormwater, drainage and open space contributions',
+    'Vegetation and trees on the site',
+  ],
+}
+
+/** Short descriptions shown with the portfolio sectors. General guidance, not claims about past work (draft). */
+export const sectorSummaries: Record<'Residential' | 'Commercial' | 'Child care' | 'Warehouse developments' | 'Subdivisions', string> = {
+  Residential: 'Town planning support for new homes, dwelling developments and other residential projects, from the first site questions through to a planning permit.',
+  Commercial: 'Planning guidance for shops, offices, clinics and other business spaces, including use and change-of-use permits.',
+  'Child care': 'Planning permits and project support for child care centres, from site assessment through to council approval and the stages that follow.',
+  'Warehouse developments': 'Town planning and approvals support for warehouse, industrial and storage developments.',
+  Subdivisions: 'Planning support for multi lot subdivisions, from feasibility and layout through to application and council liaison.',
 }
 
 const longFormat = new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })

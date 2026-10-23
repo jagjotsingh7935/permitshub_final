@@ -26,7 +26,7 @@ export const navigation = [
 ]
 
 export const pageTitles: Record<string, string> = {
-  '/': 'Permits Hub — Planning with a clearer path forward',
+  '/': 'Permits Hub — Town Planning and Project Consultation Services',
   '/services': 'Planning Services — Permits Hub',
   '/projects': 'Projects — Permits Hub',
   '/about': 'About Permits Hub',
@@ -34,13 +34,18 @@ export const pageTitles: Record<string, string> = {
   '/contact': 'Contact Permits Hub',
 }
 
+/** Client-supplied liability statement (shown in the footer and on the Services page). */
+export const disclaimer = 'Permits Hub Pty Ltd does not manage or supervise trades or administer independent building contracts. To the extent permitted by law, we accept no responsibility for works or documentation provided by independently engaged third parties, including construction works. We may engage subcontractors to assist in delivering our services, and their details will be provided to you. Nothing in this statement excludes any liability or statutory rights that cannot lawfully be excluded.'
+
 /** Options shared by the Home starter and the Contact form. */
 export const projectTypes = [
-  'Childcare or community facility',
-  'Commercial development',
   'Residential development',
-  'Site feasibility',
-  'Planning permit',
+  'Commercial development',
+  'Child care or community facility',
+  'Warehouse development',
+  'Subdivision',
+  'Site due diligence',
+  'Planning or building permit',
   'Other',
 ] as const
 

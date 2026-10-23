@@ -1,18 +1,21 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowUpRight, ExternalLink } from 'lucide-react'
+import { PortfolioSectors } from '../components/projects/PortfolioSectors'
 import { ProjectCard } from '../components/projects/ProjectCard'
 import { ProjectMedia } from '../components/projects/ProjectMedia'
 import { StatusLabel } from '../components/ui/Badges'
 import { Reveal } from '../components/ui/Reveal'
 import { CallToAction, PageHero, SectionIntro } from '../components/ui/Sections'
-import { demoProjects, formatDate, projectCategories, projects, verifiedProjects, type ProjectCategory } from '../content'
+import { scrollToElement } from '../lib/scroll'
+import { demoProjects, formatDate, projectCategories, projects, sectorSummaries, verifiedProjects, type ProjectCategory } from '../content'
 
 type RecordFilter = 'all' | 'verified' | 'demo'
 
 export default function Projects() {
   const featured = verifiedProjects.find(project => project.slug === 'st-leonards-childcare')!
-  const [category, setCategory] = useState<ProjectCategory | 'All'>('All')
+  const [searchParams] = useSearchParams()
+  const [category, setCategory] = useState<ProjectCategory | 'All'>(() => projectCategories.find(item => item === searchParams.get('type')) ?? 'All')
   const [record, setRecord] = useState<RecordFilter>('all')
 
   const available = projectCategories.filter(item => projects.some(project => project.category === item))
@@ -24,6 +27,13 @@ export default function Projects() {
   const demoCount = results.length - verifiedCount
   // Emptying `demoProjects` in src/content/projects.ts removes every demo mention on this page.
   const hasDemos = demoProjects.length > 0
+  const sectorNote = category in sectorSummaries ? sectorSummaries[category as keyof typeof sectorSummaries] : ''
+
+  function chooseSector(next: ProjectCategory) {
+    setCategory(next)
+    const target = document.getElementById('all-projects')
+    if (target) scrollToElement(target, 100)
+  }
 
   return (
     <>
@@ -75,7 +85,14 @@ export default function Projects() {
         </div>
       </section>
 
-      <section className="section project-index" aria-labelledby="index-title">
+      <section className="section portfolio-sectors" aria-labelledby="sectors-title">
+        <div className="container">
+          <Reveal><SectionIntro id="sectors-title" eyebrow="Portfolio" title={<>Our work,<br /><em>by sector.</em></>} body="Choose a sector to see its projects. Sectors without a public update yet are shown as coming soon." /></Reveal>
+          <PortfolioSectors demos={hasDemos} onSelect={chooseSector} active={category} />
+        </div>
+      </section>
+
+      <section className="section project-index" id="all-projects" aria-labelledby="index-title">
         <div className="container">
           <div className="project-index__head">
             <SectionIntro id="index-title" eyebrow="All projects" title="Browse by type." />
@@ -98,6 +115,7 @@ export default function Projects() {
               </div>}
             </div>
           </div>
+          {sectorNote && <p className="project-index__sector">{sectorNote}</p>}
           <p className="project-index__count" aria-live="polite">
             Showing {results.length} {results.length === 1 ? 'project' : 'projects'}{hasDemos ? `: ${verifiedCount} public ${verifiedCount === 1 ? 'update' : 'updates'}, ${demoCount} demo` : ''}.
           </p>

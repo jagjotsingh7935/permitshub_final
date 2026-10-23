@@ -1,10 +1,10 @@
 import type { LucideIcon } from 'lucide-react'
-import { Building2, ClipboardCheck, Compass, FileCheck2, GraduationCap, LandPlot } from 'lucide-react'
+import { Building2, ClipboardCheck, Compass, FileCheck2, LandPlot } from 'lucide-react'
 import type { ContentStatus, JourneyStageId } from './types'
 import type { projectTypes } from './site'
 
 /*
- * The six service titles and one-line descriptions come from the original website.
+ * The five service names come from the client's brief (October 2026).
  * Everything else is DRAFT copy written for this build: the client should confirm scope before publication.
  */
 export type Service = {
@@ -27,42 +27,10 @@ export type Service = {
 
 export const services: Service[] = [
   {
-    id: 'planning-permits',
+    id: 'due-diligence',
     number: '01',
-    title: 'Planning permit support',
-    description: 'Clear guidance through the documentation, application and council review process.',
-    icon: FileCheck2,
-    status: 'draft',
-    involves:
-      'Preparing a planning permit application and working through council’s assessment. That can include requests for further information, public notice, comments from referral authorities and the conditions attached to a permit. The aim is a complete, well-reasoned application that is easier for council to assess.',
-    whoFor: [
-      'Landowners and developers with a design that is ready, or close to it',
-      'Business operators who need approval for a new use of land',
-      'Architects and designers who want a planning lead alongside them',
-    ],
-    situations: [
-      'Your designer has drawings and the application needs a town planning report',
-      'Council has issued a request for further information',
-      'The application is on public notice and objections have been received',
-      'You need to understand what the permit conditions require',
-    ],
-    inputs: ['Certificate of title and any covenants', 'Survey or site plan', 'Proposed plans and elevations', 'Any previous council correspondence'],
-    deliverables: [
-      'Town planning report addressing the relevant planning scheme provisions',
-      'Application forms and a coordinated document set',
-      'Written responses to further information requests',
-      'A summary of permit conditions and what they mean for the next stage',
-    ],
-    conversation: 'Share the property address, what you want to build or use the land for, and any drawings you already have.',
-    stages: ['apply', 'assess', 'decide'],
-    relatedProjects: ['winchelsea-childcare', 'st-leonards-childcare', 'winter-valley-swim-school'],
-    enquiryType: 'Planning permit',
-  },
-  {
-    id: 'site-feasibility',
-    number: '02',
-    title: 'Site feasibility & due diligence',
-    description: 'Explore the planning considerations that matter before committing to a site or concept.',
+    title: 'Town Planning – Due Diligence Services',
+    description: 'Understand the planning controls, constraints and opportunities of a site before you commit to buying or developing it.',
     icon: Compass,
     status: 'draft',
     involves:
@@ -88,103 +56,130 @@ export const services: Service[] = [
     ],
     conversation: 'Send the address and a sentence about the idea. A listing link or a sketch is helpful but optional.',
     stages: ['site', 'concept'],
-    enquiryType: 'Site feasibility',
+    enquiryType: 'Site due diligence',
   },
   {
-    id: 'zoning-advice',
-    number: '03',
-    title: 'Town planning & zoning advice',
-    description: 'Make better informed decisions about land use, development potential and approvals.',
+    id: 'multi-lot-subdivisions',
+    number: '02',
+    title: 'Town Planning – Multi Lot Subdivisions',
+    description: 'Planning guidance for dividing land into multiple lots, from the first concept through to council approval.',
     icon: LandPlot,
     status: 'draft',
     involves:
-      'Interpreting the planning scheme for your site and your question. That could be whether a use is allowed, how a set of controls applies, or which pathway makes sense. Advice can be verbal or written, depending on what the decision needs.',
+      'Planning support for dividing land into several lots. Subdivision involves the planning scheme, council requirements and design decisions that all affect one another, such as lot sizes, access, servicing and the way each lot relates to the street. The aim is a concept that responds to the controls from the start.',
     whoFor: [
-      'Owners with a specific question about their land',
-      'Businesses expanding or changing how a property is used',
-      'Design teams checking controls before they finalise a concept',
+      'Landowners considering dividing a large lot',
+      'Developers testing the yield of a site',
+      'Design and survey teams preparing a subdivision layout',
     ],
     situations: [
-      'You have received a council letter and are unsure what it means',
-      'The property is affected by an overlay or planning scheme amendment',
-      'A proposed use sits between categories in the planning scheme',
-      'You need to know whether a permit is required at all',
+      'You want to know how many lots a site could realistically support',
+      'The layout needs a planning permit before plans can be certified',
+      'Council has asked for more information about the proposed lots',
+      'Neighbours or authorities have commented on the proposal',
     ],
-    inputs: ['Property address', 'A description of the question or proposal', 'Relevant council letters or previous permits'],
-    deliverables: ['Written advice on permit triggers and relevant provisions', 'Commentary on policy and likely areas of focus', 'Options for the approval pathway'],
-    conversation: 'Tell us the address and the question you are trying to answer.',
-    stages: ['site', 'concept', 'apply', 'assess', 'decide'],
-    enquiryType: 'Planning permit',
+    inputs: ['Certificate of title and any covenants or easements', 'Survey or site plan', 'A concept lot layout, if you have one', 'Any previous council correspondence'],
+    deliverables: [
+      'Feasibility view of how the land could be divided',
+      'Town planning report for the subdivision application',
+      'Coordinated application documents',
+      'Written responses to council requests for further information',
+    ],
+    conversation: 'Share the address, the size of the land and how many lots you have in mind.',
+    stages: ['concept', 'apply', 'assess', 'decide'],
+    enquiryType: 'Subdivision',
   },
   {
-    id: 'commercial-development',
+    id: 'use-and-development-permits',
+    number: '03',
+    title: 'Town Planning – Use and Development Permits',
+    description: 'Design documentation and town planning services to prepare and manage permit applications for a new use or development.',
+    icon: FileCheck2,
+    status: 'draft',
+    involves:
+      'Preparing a planning permit application for a new use or development and working through council’s assessment. That can include design documentation, a town planning report, requests for further information, public notice, referral comments and the conditions attached to a permit.',
+    whoFor: [
+      'Landowners and developers with a design that is ready, or close to it',
+      'Business operators who need approval for a new use of land',
+      'Architects and designers who want a planning lead alongside them',
+    ],
+    situations: [
+      'Your designer has drawings and the application needs a town planning report',
+      'A building needs a change of use permit',
+      'Council has issued a request for further information',
+      'The application is on public notice and objections have been received',
+    ],
+    inputs: ['Certificate of title and any covenants', 'Survey or site plan', 'Proposed plans and elevations', 'Any previous council correspondence'],
+    deliverables: [
+      'Design documentation coordinated for the application',
+      'Town planning report addressing the relevant planning scheme provisions',
+      'Application forms and a coordinated document set',
+      'A summary of permit conditions and what they mean for the next stage',
+    ],
+    conversation: 'Share the property address, what you want to build or use the land for, and any drawings you already have.',
+    stages: ['concept', 'apply', 'assess', 'decide'],
+    relatedProjects: ['winchelsea-childcare', 'st-leonards-childcare', 'winter-valley-swim-school'],
+    enquiryType: 'Planning or building permit',
+  },
+  {
+    id: 'building-permit',
     number: '04',
-    title: 'Commercial development',
-    description: 'Planning input for business spaces, facilities and projects with multiple moving parts.',
+    title: 'Building Permit – Design and Documentation',
+    description: 'Design and documentation prepared to support a building permit application once planning is in place.',
     icon: Building2,
     status: 'draft',
     involves:
-      'Planning support for offices, shops, clinics, warehouses and mixed-use buildings. Commercial proposals often involve car parking, signage, loading, hours of operation and amenity for neighbours. Each of these needs to be addressed clearly in the application.',
+      'Design and documentation that supports a building permit application, the step that usually follows planning approval. Building permits are issued by a building surveyor, so the documentation needs to match the planning permit and its endorsed plans.',
     whoFor: [
-      'Business owners moving into or fitting out new premises',
-      'Developers of commercial or light industrial buildings',
-      'Landlords repositioning a property for new tenants',
+      'Owners and developers who have a planning permit and need to move to construction',
+      'Builders who need documentation that reflects the permit conditions',
+      'Project teams who want planning and building documents kept consistent',
     ],
     situations: [
-      'A tenancy needs a change of use permit',
-      'The proposal needs car parking waivers or reductions',
-      'New business signage needs a permit',
-      'A warehouse or showroom is being extended',
+      'A planning permit has been issued and the design is being developed further',
+      'Permit conditions need to be reflected in the construction documents',
+      'The design has changed and the permit may need amending',
     ],
-    inputs: ['Floor plans and proposed operating details', 'Staff and customer numbers', 'Existing permits for the site', 'Car parking and loading arrangements'],
-    deliverables: ['Planning report for use and development', 'Car parking and operational statement', 'Signage and advertising assessment', 'Coordination notes for traffic and acoustic inputs'],
-    conversation: 'Describe the business, the premises and how you plan to operate from the site.',
-    stages: ['concept', 'apply', 'assess'],
-    enquiryType: 'Commercial development',
+    inputs: ['Planning permit and endorsed plans', 'Current design drawings', 'Consultant reports', 'Your preferred building surveyor, if you have one'],
+    deliverables: [
+      'Coordinated design and documentation set for the building permit',
+      'Check of documentation against planning permit conditions',
+      'Support with the building permit application',
+      'Advice on amendments where the design has changed',
+    ],
+    conversation: 'Tell us what has been approved so far and where the design is up to.',
+    stages: ['concept', 'decide'],
+    relatedProjects: ['winchelsea-childcare'],
+    enquiryType: 'Planning or building permit',
   },
   {
-    id: 'childcare-community',
+    id: 'construction-management',
     number: '05',
-    title: 'Childcare & community facilities',
-    description: 'Thoughtful planning guidance for facilities that serve growing local communities.',
-    icon: GraduationCap,
-    status: 'draft',
-    involves:
-      'Planning for early learning centres, recreation facilities and other community uses. These proposals usually attract attention to traffic, drop-off, noise from outdoor play, hours and landscaping. Permits Hub’s public project updates include childcare centres and a swim school.',
-    whoFor: ['Childcare operators and developers', 'Community, recreation and sporting organisations', 'Landowners with a site suited to a community use'],
-    situations: [
-      'Choosing between possible sites for a new centre',
-      'Preparing an application for a childcare centre or swim school',
-      'Council has raised traffic, noise or amenity concerns',
-      'Neighbours have lodged objections',
-    ],
-    inputs: ['Site address and proposed number of places', 'Concept design or operator brief', 'Proposed hours and staff numbers', 'Traffic, acoustic or arborist reports, if already prepared'],
-    deliverables: ['Site suitability review', 'Town planning report and application package', 'Response to amenity and traffic issues', 'Support through council assessment'],
-    conversation: 'Share the site, the number of places or facility size, and where the project is up to.',
-    stages: ['site', 'concept', 'apply', 'assess'],
-    relatedProjects: ['winchelsea-childcare', 'st-leonards-childcare', 'winter-valley-swim-school'],
-    enquiryType: 'Childcare or community facility',
-  },
-  {
-    id: 'development-coordination',
-    number: '06',
-    title: 'Development coordination',
-    description: 'A connected view of the journey from early permits toward the next project stage.',
+    title: 'Construction Stage – Project Consultation and Management',
+    description: 'Consultation and management support as your project moves from approval into construction.',
     icon: ClipboardCheck,
     status: 'draft',
     involves:
-      'Keeping the planning side of a project connected to design, consultants and the next stage. This can include a roadmap, tracking permit conditions and preparing for building permits, so decisions made at one stage don’t cause problems at the next.',
-    whoFor: ['Developers running several consultants at once', 'Owners who want one point of contact for planning matters', 'Builders who need to understand planning conditions'],
+      'Consultation and project management support through the construction stage, so decisions, documentation and milestones stay connected from approval to completion. Permits Hub does not supervise trades or administer building contracts; see the disclaimer on this page.',
+    whoFor: [
+      'Developers running several consultants and contractors at once',
+      'Owners who want one point of contact for project questions',
+      'Teams who need permit conditions tracked through construction',
+    ],
     situations: [
       'A permit has been issued and conditions must be satisfied',
-      'Several reports need to be prepared in a sensible order',
-      'The design has changed and the permit may need amending',
+      'Several parties need to work from the same up-to-date information',
+      'Decisions arise on site that affect the approved plans',
     ],
-    inputs: ['Current permits and endorsed plans', 'Consultant list and programme', 'Upcoming deadlines or milestones'],
-    deliverables: ['Planning roadmap for the project', 'Tracker for permit conditions', 'Coordinated information for the building surveyor', 'Advice on amendments or secondary consent'],
-    conversation: 'Tell us what has been approved so far and what needs to happen next.',
-    stages: ['apply', 'assess', 'decide'],
-    relatedProjects: ['winchelsea-childcare'],
+    inputs: ['Current permits and endorsed plans', 'Consultant and contractor list and programme', 'Upcoming deadlines or milestones'],
+    deliverables: [
+      'Project roadmap through to construction completion',
+      'Tracker for permit conditions and milestones',
+      'Consultation on project questions as they arise',
+      'Coordinated information for the project team',
+    ],
+    conversation: 'Tell us where the project is up to and what support would help most.',
+    stages: ['decide'],
     enquiryType: 'Other',
   },
 ]
@@ -199,11 +194,11 @@ export const journeyStages: { id: JourneyStageId; label: string; short: string }
 
 /** Service finder on the Services page (draft). */
 export const serviceFinder: { stage: JourneyStageId; prompt: string; answer: string; services: string[] }[] = [
-  { stage: 'site', prompt: 'I’m looking at a site', answer: 'Start with a feasibility review. It shows what the zone and overlays allow before you commit to the land.', services: ['site-feasibility', 'zoning-advice'] },
-  { stage: 'concept', prompt: 'I’m working on a design', answer: 'Planning input during design can align the concept with the controls before drawings are finalised.', services: ['zoning-advice', 'commercial-development', 'childcare-community'] },
-  { stage: 'apply', prompt: 'I’m ready to apply', answer: 'The application needs a planning report and a coordinated set of documents that address the relevant provisions.', services: ['planning-permits', 'development-coordination'] },
-  { stage: 'assess', prompt: 'Council has come back to me', answer: 'A clear, well-reasoned response to further information requests or objections can keep the assessment moving.', services: ['planning-permits', 'childcare-community'] },
-  { stage: 'decide', prompt: 'I have a permit', answer: 'Permit conditions and endorsed plans shape the next stage. Coordination keeps them connected to the building permit.', services: ['development-coordination', 'planning-permits'] },
+  { stage: 'site', prompt: 'I’m looking at a site', answer: 'Start with due diligence. It shows what the zone and overlays allow before you commit to the land.', services: ['due-diligence', 'multi-lot-subdivisions'] },
+  { stage: 'concept', prompt: 'I’m working on a design', answer: 'Planning input during design can align the concept with the controls before drawings are finalised.', services: ['use-and-development-permits', 'multi-lot-subdivisions', 'building-permit'] },
+  { stage: 'apply', prompt: 'I’m ready to apply', answer: 'The application needs a planning report and a coordinated set of documents that address the relevant provisions.', services: ['use-and-development-permits', 'multi-lot-subdivisions'] },
+  { stage: 'assess', prompt: 'Council has come back to me', answer: 'A clear, well-reasoned response to further information requests or objections can keep the assessment moving.', services: ['use-and-development-permits', 'multi-lot-subdivisions'] },
+  { stage: 'decide', prompt: 'I have a permit', answer: 'Permit conditions and endorsed plans shape the next stage. Building permit documentation and construction-stage support keep them connected.', services: ['building-permit', 'construction-management'] },
 ]
 
 /** Who commonly contributes to an application. Not a list of staff. */

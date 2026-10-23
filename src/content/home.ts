@@ -2,6 +2,14 @@ import type { Faq } from './types'
 
 /* Home page content. All DRAFT unless noted: written for this build, client to review. */
 
+/** The four pillars from the client's brand poster. */
+export const pillars = [
+  { title: 'Town Planning', text: 'Expert advice' },
+  { title: 'Development Approvals', text: 'Permits and applications' },
+  { title: 'Project Management', text: 'From approval to completion' },
+  { title: 'End to End Solutions', text: 'One team, one process' },
+]
+
 export const audiences = [
   { title: 'Landowners', body: 'Understanding what a property can support before spending on design.' },
   { title: 'Developers & investors', body: 'Testing sites and managing applications with several moving parts.' },

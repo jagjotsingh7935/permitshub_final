@@ -7,6 +7,7 @@ import { CallToAction, PageHero, SectionIntro } from '../components/ui/Sections'
 import {
   consultationPrep,
   coordinationRoles,
+  disclaimer,
   engagementFormats,
   journeyStages,
   serviceFinder,
@@ -73,7 +74,7 @@ function ServiceBlock({ service, index }: { service: Service; index: number }) {
       <div className="container service-block__grid">
         <div className="service-block__copy">
           <Reveal>
-            <p className="service-block__number"><span>{service.number}</span> of 06</p>
+            <p className="service-block__number"><span>{service.number}</span> of 0{services.length}</p>
             <h2 id={`${service.id}-title`}>{service.title}</h2>
             <p className="service-block__lead">{service.description}</p>
             <h3>What it involves</h3>
@@ -223,6 +224,10 @@ export default function Services() {
           <Reveal><SectionIntro id="services-faq-title" eyebrow="Questions" title={<>About our<br /><em>services.</em></>} /></Reveal>
           <Accordion items={servicesFaqs.map((faq, index) => ({ id: `services-faq-${index}`, title: faq.question, content: <p>{faq.answer}</p> }))} />
         </div>
+      </section>
+
+      <section className="services-disclaimer-section" aria-label="Disclaimer">
+        <div className="container"><p className="services-disclaimer"><strong>Disclaimer –</strong> {disclaimer}</p></div>
       </section>
 
       <CallToAction compact title={<>Not sure where<br /><em>to start?</em></>} body="Start with the site and the idea. We can help identify the right conversation." />

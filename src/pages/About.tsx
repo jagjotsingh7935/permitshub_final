@@ -18,7 +18,7 @@ export default function About() {
   const stLeonards = verifiedProjects.find(project => project.slug === 'st-leonards-childcare')!
   return (
     <>
-      <PageHero eyebrow="About Permits Hub" title={<>A clearer way<br /><em>to get there.</em></>} body="Permits Hub supports the development journey with practical town planning advice, permit guidance and a focus on what comes next." number="03">
+      <PageHero eyebrow="About Permits Hub" title={<>A clearer way<br /><em>to get there.</em></>} body="With over 16 years of town planning experience, Permits Hub is based in Melbourne and provides all-in-one-stop development solutions, from town planning to construction completion." number="03">
         <div className="about-hero-aside">
           <dl className="hero-facts">
             <div><dt>Registered</dt><dd>September 2021</dd></div>
@@ -46,8 +46,8 @@ export default function About() {
             <div className="about-main__copy">
               <span className="eyebrow"><span className="eyebrow__line" />Our perspective</span>
               <h2>Good planning makes<br /><em>space for progress.</em></h2>
-              <p>Permits Hub works across town planning, permits and development guidance in Victoria. Its publicly shared projects include childcare and recreation facilities, where the planning work helps an idea become a place people can use.</p>
-              <p>The team brings site context, planning questions and practical next steps into focus, so each decision can be made with a clearer view ahead.</p>
+              <p>With over 16 years of town planning experience, Permits Hub is based in Melbourne. Our multi-disciplinary services provide all-in-one-stop development solutions, from town planning to construction completion.</p>
+              <p>Permits Hub provides town planning and project consultation services across the whole journey: due diligence, multi lot subdivisions, use and development permits, building permit design and documentation, and project consultation and management through the construction stage.</p>
               <a href={facebookUrl} target="_blank" rel="noreferrer" className="text-link">See Permits Hub on Facebook <ExternalLink size={17} /><span className="sr-only"> (opens in a new tab)</span></a>
             </div>
           </Reveal>
