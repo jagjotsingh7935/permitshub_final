@@ -4,42 +4,38 @@ import { ArrowUpRight, HelpCircle } from 'lucide-react'
 import { Accordion } from '../components/ui/Accordion'
 import { Reveal } from '../components/ui/Reveal'
 import { CallToAction, PageHero, SectionIntro } from '../components/ui/Sections'
-import { allFaqs, faqCategories, type FaqCategory } from '../content'
+import { useSite } from '../site/SiteProvider'
 
 export default function FAQs() {
-  const [selectedCategory, setSelectedCategory] = useState<FaqCategory | 'All'>('All')
+  const { t, rt, allFaqs, faqCategories } = useSite()
+  const [selectedCategory, setSelectedCategory] = useState<string>('All')
 
   const filteredFaqs = useMemo(() => {
     if (selectedCategory === 'All') return allFaqs
     return allFaqs.filter((item) => item.category === selectedCategory)
-  }, [selectedCategory])
+  }, [selectedCategory, allFaqs])
 
   return (
     <>
       <PageHero
-        eyebrow="Help & Resources"
-        title={
-          <>
-            Answers for the<br />
-            <em>key stages.</em>
-          </>
-        }
-        body="Clear, practical answers about town planning permits, council timeframes, and coordinating your project from first concept to construction."
+        eyebrow={t('faqs.hero.eyebrow')}
+        title={rt('faqs.hero.title')}
+        body={t('faqs.hero.body')}
         number="04"
       >
         <div className="about-hero-aside">
           <dl className="hero-facts">
             <div>
-              <dt>Core focus</dt>
-              <dd>Town planning, permits & development coordination</dd>
+              <dt>{t('faqs.hero.f1_label')}</dt>
+              <dd>{t('faqs.hero.f1')}</dd>
             </div>
             <div>
-              <dt>Victorian council support</dt>
-              <dd>Regional and metropolitan Victoria</dd>
+              <dt>{t('faqs.hero.f2_label')}</dt>
+              <dd>{t('faqs.hero.f2')}</dd>
             </div>
           </dl>
           <Link to="/contact" className="button button--white">
-            Ask a question <ArrowUpRight size={17} />
+            {t('faqs.hero.button')} <ArrowUpRight size={17} />
           </Link>
         </div>
       </PageHero>
@@ -49,14 +45,9 @@ export default function FAQs() {
           <Reveal>
             <SectionIntro
               id="faqs-list-title"
-              eyebrow="Browse questions"
-              title={
-                <>
-                  Frequently asked<br />
-                  <em>questions.</em>
-                </>
-              }
-              body="Filter by stage or scroll through general guidance on planning permits and coordination."
+              eyebrow={t('faqs.list.eyebrow')}
+              title={rt('faqs.list.title')}
+              body={t('faqs.list.body')}
             />
           </Reveal>
 
@@ -67,7 +58,7 @@ export default function FAQs() {
                 className={`faq-filter-btn ${selectedCategory === 'All' ? 'is-active' : ''}`}
                 onClick={() => setSelectedCategory('All')}
               >
-                All ({allFaqs.length})
+                {t('faqs.list.all')} ({allFaqs.length})
               </button>
               {faqCategories.map((category) => {
                 const count = allFaqs.filter((f) => f.category === category).length
@@ -136,22 +127,22 @@ export default function FAQs() {
                       margin: 0,
                     }}
                   >
-                    Don't see your question answered?
+                    {t('faqs.box.title')}
                   </h3>
                   <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--muted, #647386)' }}>
-                    Every site has unique planning considerations. Get in touch for an initial site assessment.
+                    {t('faqs.box.body')}
                   </p>
                 </div>
               </div>
               <Link to="/contact" className="button button--primary">
-                Discuss your project <ArrowUpRight size={17} />
+                {t('faqs.box.button')} <ArrowUpRight size={17} />
               </Link>
             </div>
           </Reveal>
         </div>
       </section>
 
-      <CallToAction compact title={<>Have a specific<br /><em>site question?</em></>} />
+      <CallToAction compact title={rt('cta.faqs.title')} />
     </>
   )
 }

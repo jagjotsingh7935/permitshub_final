@@ -1,26 +1,16 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ArrowUpRight, Clipboard, Facebook, FileText, MapPin, Phone } from 'lucide-react'
+import { ArrowUpRight, Facebook, FileText, MapPin, Phone } from 'lucide-react'
+import { submitEnquiry } from '../api/client'
 import { Accordion } from '../components/ui/Accordion'
 import { Checklist } from '../components/ui/Checklist'
 import { Reveal, RevealGroup, RevealItem } from '../components/ui/Reveal'
 import { PageHero, SectionIntro } from '../components/ui/Sections'
-import {
-  afterContactSteps,
-  contactEmail,
-  contactFaqs,
-  contactPhone,
-  contactPhoneHref,
-  facebookUrl,
-  firstConversationChecklist,
-  prepareItems,
-  projectStages,
-  projectTypes,
-} from '../content'
+import { useSite } from '../site/SiteProvider'
 
 /*
- * Frontend-only enquiry flow: validates, then prepares an email for the visitor to send themselves.
- * Nothing is sent or stored. A Django REST Framework endpoint can later replace `prepare()`.
+ * Enquiry flow: validates, then sends the enquiry to the backend, which stores it for the team,
+ * emails them an alert and emails the visitor a confirmation.
  */
 type Brief = { name: string; email: string; phone: string; projectType: string; location: string; stage: string; message: string }
 type Field = keyof Brief
@@ -38,24 +28,10 @@ function validate(brief: Brief) {
   return errors
 }
 
-function composeEmail(brief: Brief, service: string | null) {
-  const lines = [
-    'Hello Permits Hub,',
-    '',
-    `My name is ${brief.name.trim()}. I would like to discuss a ${brief.projectType.toLowerCase()} project${brief.location.trim() ? ` in ${brief.location.trim()}` : ''}.`,
-    service ? `I’m interested in: ${service}.` : '',
-    brief.stage ? `Where I’m up to: ${brief.stage}.` : '',
-    '',
-    brief.message.trim(),
-    '',
-    `You can reach me at ${brief.email.trim()}${brief.phone.trim() ? ` or on ${brief.phone.trim()}` : ''}.`,
-  ]
-  return lines.join('\n').replace(/\n{3,}/g, '\n\n')
-}
-
 const fromList = (list: readonly string[], value: string | null) => (value && list.includes(value) ? value : '')
 
 function EnquiryForm() {
+  const { t, projectTypes, projectStages } = useSite()
   const [searchParams] = useSearchParams()
   const service = searchParams.get('service')
   const [brief, setBrief] = useState<Brief>(() => ({
@@ -68,52 +44,63 @@ function EnquiryForm() {
     message: '',
   }))
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({})
-  const [prepared, setPrepared] = useState('')
-  const [copied, setCopied] = useState<'idle' | 'copied' | 'failed'>('idle')
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [sentTo, setSentTo] = useState({ email: '', confirmed: false })
+  const [trap, setTrap] = useState('')
   const summaryRef = useRef<HTMLDivElement>(null)
-  const preparedRef = useRef<HTMLDivElement>(null)
+  const resultRef = useRef<HTMLDivElement>(null)
 
   function update(field: Field, value: string) {
     setBrief(current => ({ ...current, [field]: value }))
     if (errors[field]) setErrors(current => ({ ...current, [field]: undefined }))
-    setPrepared('')
-    setCopied('idle')
+    if (status !== 'sending') setStatus('idle')
   }
 
-  function prepare(event: FormEvent<HTMLFormElement>) {
+  async function send(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const found = validate(brief)
     setErrors(found)
     if (Object.keys(found).length) {
-      setPrepared('')
       requestAnimationFrame(() => summaryRef.current?.focus())
       return
     }
-    setPrepared(composeEmail(brief, service))
-    setCopied('idle')
-    requestAnimationFrame(() => preparedRef.current?.focus())
-  }
-
-  async function copyBrief() {
-    try { await navigator.clipboard.writeText(prepared); setCopied('copied') } catch { setCopied('failed') }
+    setStatus('sending')
+    try {
+      const result = await submitEnquiry({
+        name: brief.name.trim(),
+        email: brief.email.trim(),
+        phone: brief.phone.trim(),
+        location: brief.location.trim(),
+        project_type: brief.projectType,
+        stage: brief.stage,
+        service: service ?? '',
+        message: brief.message.trim(),
+        website: trap,
+      })
+      setSentTo({ email: brief.email.trim(), confirmed: result.confirmationSent })
+      setBrief(current => ({ ...current, name: '', email: '', phone: '', message: '' }))
+      setStatus('sent')
+      requestAnimationFrame(() => resultRef.current?.focus())
+    } catch {
+      setStatus('error')
+    }
   }
 
   const errorList = fieldOrder.filter(field => errors[field])
   const describedBy = (field: Field, hint?: string) => [hint, errors[field] ? `${field}-error` : ''].filter(Boolean).join(' ') || undefined
-  const emailHref = `mailto:${contactEmail}?subject=${encodeURIComponent('Project enquiry — Permits Hub')}&body=${encodeURIComponent(prepared)}`
 
   return (
     <div className="contact-form-wrap" id="enquiry">
-      <span className="contact-form-wrap__label">Project brief</span>
-      <h3>Tell us what you’re planning.</h3>
-      {service && <p className="contact-form-wrap__service">Enquiring about: <strong>{service}</strong></p>}
+      <span className="contact-form-wrap__label">{t('contact.form.label')}</span>
+      <h3>{t('contact.form.title')}</h3>
+      {service && <p className="contact-form-wrap__service">{t('contact.form.service')} <strong>{service}</strong></p>}
       {errorList.length > 0 && (
         <div className="form-errors" role="alert" tabIndex={-1} ref={summaryRef}>
-          <p>Check {errorList.length === 1 ? 'one field' : `${errorList.length} fields`} before preparing your email:</p>
+          <p>Check {errorList.length === 1 ? 'one field' : `${errorList.length} fields`} before sending your enquiry:</p>
           <ul>{errorList.map(field => <li key={field}><a href={`#field-${field}`}>{labels[field]}: {errors[field]}</a></li>)}</ul>
         </div>
       )}
-      <form onSubmit={prepare} className="contact-form" noValidate>
+      <form onSubmit={send} className="contact-form" noValidate>
         <div className="form-row">
           <div className="field">
             <label htmlFor="field-name">Your name <span className="field__req">required</span></label>
@@ -157,22 +144,20 @@ function EnquiryForm() {
         <div className="field">
           <label htmlFor="field-message">About your project <span className="field__req">required</span></label>
           <textarea id="field-message" name="message" rows={5} placeholder="What are you hoping to do? Is there a date that matters?" value={brief.message} onChange={event => update('message', event.target.value)} aria-invalid={Boolean(errors.message)} aria-describedby={describedBy('message', 'message-hint')} />
-          <p className="field__hint" id="message-hint">A sentence or two is enough. You can attach drawings in your email later.</p>
+          <p className="field__hint" id="message-hint">{t('contact.form.message_hint')}</p>
           {errors.message && <p className="field__error" id="message-error">{errors.message}</p>}
         </div>
-        <button type="submit" className="button button--primary">Prepare my email <ArrowUpRight size={18} /></button>
-        <p className="form-note">This form prepares an email on your device. It does not send or store your details. You send the email yourself.</p>
+        <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: 1, height: 1, overflow: 'hidden' }}>
+          <label>Leave this field empty<input tabIndex={-1} autoComplete="off" name="website" value={trap} onChange={event => setTrap(event.target.value)} /></label>
+        </div>
+        <button type="submit" className="button button--primary" disabled={status === 'sending'}>{status === 'sending' ? t('contact.form.sending') : t('contact.form.submit')} <ArrowUpRight size={18} /></button>
+        <p className="form-note">{t('contact.form.note')}</p>
+        {status === 'error' && <p className="field__error" role="alert">{t('contact.form.error')}</p>}
       </form>
-      {prepared && (
-        <div className="prepared-brief" tabIndex={-1} ref={preparedRef} role="status">
-          <h4>Your email is ready to send</h4>
-          <p>Nothing has been sent yet. Open it in your email app to review and send, or copy it.</p>
-          <pre>{prepared}</pre>
-          <div>
-            <a href={emailHref} className="button button--primary">Open in email app <ArrowUpRight size={17} /></a>
-            <button type="button" onClick={copyBrief} className="button button--outline"><Clipboard size={17} />{copied === 'copied' ? 'Copied' : 'Copy message'}</button>
-          </div>
-          {copied === 'failed' && <p className="field__error">Copying isn’t available in this browser. Select the text above and copy it manually.</p>}
+      {status === 'sent' && (
+        <div className="prepared-brief" tabIndex={-1} ref={resultRef} role="status">
+          <h4>{t('contact.form.success_title')}</h4>
+          <p>{sentTo.confirmed ? t('contact.form.success_body').replace('{email}', sentTo.email) : t('contact.form.success_body_no_email')}</p>
         </div>
       )}
     </div>
@@ -180,24 +165,26 @@ function EnquiryForm() {
 }
 
 export default function Contact() {
+  const { t, rt, settings, prepareItems, firstConversationChecklist, afterContactSteps, contactFaqs } = useSite()
   const [mapReady, setMapReady] = useState(false)
+  const mapQuery = encodeURIComponent(t('contact.map.query'))
   return (
     <>
-      <PageHero eyebrow="Let’s talk" title={<>Start with a<br /><em>conversation.</em></>} body="Tell us about the site, the idea and where you are in the process. There is no need to have everything worked out before you get in touch." number="04" />
+      <PageHero eyebrow={t('contact.hero.eyebrow')} title={rt('contact.hero.title')} body={t('contact.hero.body')} number="04" />
 
       <section className="section contact-section">
         <div className="container contact-grid">
           <div className="contact-side">
             <Reveal>
-              <span className="eyebrow"><span className="eyebrow__line" />Get in touch</span>
-              <h2>Every project<br />starts somewhere.</h2>
-              <p>Call to talk it through, or prepare a short brief and send it by email. Both reach the same team.</p>
-              <a className="contact-social" href={contactPhoneHref}><span><Phone size={22} /></span><span><strong>{contactPhone}</strong><small>Speak with Permits Hub</small></span><ArrowUpRight size={20} /></a>
-              <a className="contact-social" href={`mailto:${contactEmail}`}><span><FileText size={22} /></span><span><strong>{contactEmail}</strong><small>Email your project details</small></span><ArrowUpRight size={20} /></a>
-              <a className="contact-social" href={facebookUrl} target="_blank" rel="noreferrer"><span><Facebook size={22} /></span><span><strong>Message Permits Hub</strong><small>Connect via Facebook (opens in a new tab)</small></span><ArrowUpRight size={20} /></a>
+              <span className="eyebrow"><span className="eyebrow__line" />{t('contact.side.eyebrow')}</span>
+              <h2>{rt('contact.side.title')}</h2>
+              <p>{t('contact.side.body')}</p>
+              <a className="contact-social" href={settings.contactPhoneHref}><span><Phone size={22} /></span><span><strong>{settings.contactPhone}</strong><small>{t('contact.side.phone_note')}</small></span><ArrowUpRight size={20} /></a>
+              <a className="contact-social" href={`mailto:${settings.contactEmail}`}><span><FileText size={22} /></span><span><strong>{settings.contactEmail}</strong><small>{t('contact.side.email_note')}</small></span><ArrowUpRight size={20} /></a>
+              {settings.facebookUrl && <a className="contact-social" href={settings.facebookUrl} target="_blank" rel="noreferrer"><span><Facebook size={22} /></span><span><strong>{t('contact.side.facebook_title')}</strong><small>{t('contact.side.facebook_note')}</small></span><ArrowUpRight size={20} /></a>}
             </Reveal>
             <Reveal>
-              <div className="contact-tip"><FileText size={25} /><div><h3>No drawings yet?</h3><p>That’s fine. An address and a sentence about the idea is enough to begin.</p></div></div>
+              <div className="contact-tip"><FileText size={25} /><div><h3>{t('contact.tip.title')}</h3><p>{t('contact.tip.body')}</p></div></div>
             </Reveal>
           </div>
           <Reveal><EnquiryForm /></Reveal>
@@ -206,7 +193,7 @@ export default function Contact() {
 
       <section className="section prepare-section" aria-labelledby="prepare-title">
         <div className="container">
-          <Reveal><SectionIntro id="prepare-title" eyebrow="Useful to prepare" title="Four things that make a first enquiry more useful." /></Reveal>
+          <Reveal><SectionIntro id="prepare-title" eyebrow={t('contact.prepare.eyebrow')} title={t('contact.prepare.title')} /></Reveal>
           <RevealGroup as="ul" className="prepare-grid">
             {prepareItems.map(item => <RevealItem as="li" key={item.title}><h3>{item.title}</h3><p>{item.body}</p></RevealItem>)}
           </RevealGroup>
@@ -216,10 +203,10 @@ export default function Contact() {
       <section className="section next-section" aria-labelledby="next-title">
         <div className="container next-section__grid">
           <Reveal>
-            <Checklist title="Before the first conversation" items={firstConversationChecklist} note="This list stays on your device" />
+            <Checklist title={t('contact.next.checklist_title')} items={firstConversationChecklist} note={t('contact.next.checklist_note')} />
           </Reveal>
           <div>
-            <Reveal><h2 id="next-title">What happens after you get in touch</h2></Reveal>
+            <Reveal><h2 id="next-title">{t('contact.next.title')}</h2></Reveal>
             <RevealGroup as="ol" className="after-steps">
               {afterContactSteps.map((step, index) => <RevealItem as="li" key={step.title}><span aria-hidden="true">{index + 1}</span><div><h3>{step.title}</h3><p>{step.body}</p></div></RevealItem>)}
             </RevealGroup>
@@ -231,25 +218,25 @@ export default function Contact() {
         <div className="container map-section__grid">
           <Reveal>
             <div>
-              <span className="eyebrow"><span className="eyebrow__line" />Where we work</span>
-              <h2>Local context.<br /><em>Broader perspective.</em></h2>
-              <p>Permits Hub has shared work across Victoria, including Melton, Ballarat, Greater Geelong and the Surf Coast region.</p>
-              <div className="map-location"><MapPin size={20} /><span>Victoria, Australia</span></div>
+              <span className="eyebrow"><span className="eyebrow__line" />{t('contact.map.eyebrow')}</span>
+              <h2>{rt('contact.map.title')}</h2>
+              <p>{t('contact.map.body')}</p>
+              <div className="map-location"><MapPin size={20} /><span>{t('contact.map.location')}</span></div>
             </div>
           </Reveal>
           <div className={`map-frame ${mapReady ? 'map-frame--ready' : ''}`}>
-            <div className="map-frame__fallback" aria-hidden="true"><i className="map-frame__ring map-frame__ring--one" /><i className="map-frame__ring map-frame__ring--two" /><i className="map-frame__ring map-frame__ring--three" /><b className="map-frame__region">VICTORIA</b><b className="map-frame__city map-frame__city--ballarat">Ballarat</b><b className="map-frame__city map-frame__city--geelong">Geelong</b><b className="map-frame__city map-frame__city--surf">Surf Coast</b></div>
-            <iframe title="Map of Victoria, Australia" loading="lazy" referrerPolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=Victoria%2C%20Australia&output=embed" onLoad={event => { try { if (event.currentTarget.contentWindow?.location.href !== 'about:blank') setMapReady(true) } catch { setMapReady(true) } }} />
-            <div className="map-frame__card"><MapPin size={22} /><div><strong>Victoria, Australia</strong><a href="https://www.google.com/maps/search/?api=1&query=Victoria%2C%20Australia" target="_blank" rel="noreferrer">Open in Google Maps <ArrowUpRight size={15} /><span className="sr-only"> (opens in a new tab)</span></a></div></div>
-            <span>Indicative region map · not an office location</span>
+            <div className="map-frame__fallback" aria-hidden="true"><i className="map-frame__ring map-frame__ring--one" /><i className="map-frame__ring map-frame__ring--two" /><i className="map-frame__ring map-frame__ring--three" /><b className="map-frame__region">{t('contact.map.location').split(',')[0].toUpperCase()}</b><b className="map-frame__city map-frame__city--ballarat">{t('contact.map.city_1')}</b><b className="map-frame__city map-frame__city--geelong">{t('contact.map.city_2')}</b><b className="map-frame__city map-frame__city--surf">{t('contact.map.city_3')}</b></div>
+            <iframe title={`Map of ${t('contact.map.location')}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" src={`https://www.google.com/maps?q=${mapQuery}&output=embed`} onLoad={event => { try { if (event.currentTarget.contentWindow?.location.href !== 'about:blank') setMapReady(true) } catch { setMapReady(true) } }} />
+            <div className="map-frame__card"><MapPin size={22} /><div><strong>{t('contact.map.location')}</strong><a href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`} target="_blank" rel="noreferrer">{t('contact.map.link')} <ArrowUpRight size={15} /><span className="sr-only"> (opens in a new tab)</span></a></div></div>
+            <span>{t('contact.map.caption')}</span>
           </div>
         </div>
       </section>
 
       <section className="section faq-section" aria-labelledby="contact-faq-title">
         <div className="container faq-section__inner">
-          <Reveal><SectionIntro id="contact-faq-title" eyebrow="Questions" title={<>About getting<br /><em>in touch.</em></>} /></Reveal>
-          <Accordion items={contactFaqs.map((faq, index) => ({ id: `contact-faq-${index}`, title: faq.question, content: <p>{faq.answer}</p> }))} />
+          <Reveal><SectionIntro id="contact-faq-title" eyebrow={t('contact.faq.eyebrow')} title={rt('contact.faq.title')} /></Reveal>
+          <Accordion items={contactFaqs.map(faq => ({ id: faq.id, title: faq.question, content: <p>{faq.answer}</p> }))} />
         </div>
       </section>
     </>

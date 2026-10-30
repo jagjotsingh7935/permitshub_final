@@ -1,0 +1,10 @@
+node_modules
+dist
+backend
+.git
+.env
+.env.*
+.codex-preview
+.codex-tools
+draft-assets
+*.zip

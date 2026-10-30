@@ -1,6 +1,6 @@
 # Permits Hub frontend
 
-Responsive website for Permits Hub, a Victorian town planning business. Built with React 19, TypeScript, Vite, React Router, Motion, Lenis and Three.js. This phase is **frontend only**: there is no backend, database or analytics, and the enquiry form prepares an email on the visitor's device rather than sending anything.
+Responsive website for Permits Hub, a Victorian town planning business. Built with React 19, TypeScript, Vite, React Router, Motion, Lenis and Three.js. All site content is managed in a Django REST Framework backend (`backend/`) with an admin portal at `/admin/`; the React app loads it from the API. The enquiry form sends enquiries to the backend, which stores them for the team and emails a confirmation from `permits@permitshub.com.au`. There is no analytics.
 
 ## Run locally
 
@@ -12,7 +12,7 @@ npm run build     # type-check (tsc -b) and production build into dist/
 npm run preview   # serve the production build locally
 ```
 
-Routes use browser history, so a static host must rewrite unknown paths to `index.html` (for example a Netlify `_redirects` rule or an nginx `try_files`).
+The frontend needs the backend running to show any content (see "Backend, admin portal and deployment" below); `npm run dev` proxies `/api`, `/media` and `/admin` to Django on port 8000. Routes use browser history, so every page address must be served the app (the Docker setup does this through Django, which also adds the SEO tags).
 
 ## Pages
 
@@ -31,17 +31,14 @@ The Home enquiry starter carries the project type, location and stage into `/con
 ## Folder structure
 
 ```
+backend/                 Django REST Framework API, admin portal, SEO pages, seed data (see below)
+docker-compose.yml, Dockerfile.web, Caddyfile, .env.example   Deployment (see below)
 src/
   main.tsx, App.tsx      App shell. Home loads with the first bundle; other pages load on demand (React.lazy).
-  content/               ALL site data and most copy, typed. Replace with an API later without touching components.
-    types.ts             Content status (verified | draft | demo) and shared types
-    site.ts              Contact details, navigation, page titles, public sources, regions
-    home.ts              Home sections and FAQs
-    services.ts          Services, finder, stage matrix, roles, engagement formats
-    projects.ts          Verified projects, demo projects, category guidance, date formatting
-    about.ts             Timeline chapters, drawing stages, principles
-    contact.ts           Contact guidance and FAQs (Contact and Services)
-  pages/                 One file per route (Home, Services, Projects, ProjectDetail, About, Contact, NotFound)
+  api/client.ts          Fetches /api/site/ and posts enquiries to /api/enquiries/
+  site/SiteProvider.tsx  Loads all content once and provides it to every component (useSite)
+  content/index.ts       Shared types, navigation and small helpers. No site content lives here any more.
+  pages/                 One file per route (Home, Services, Projects, ProjectDetail, About, FAQs, Contact, NotFound)
   components/
     layout/              Header (with mobile menu), Footer, Brand
     home/                ArchitecturalHero + architecturalScene.ts (Three.js), ProjectStarter, ServicesEditorial
@@ -50,82 +47,41 @@ src/
     ui/                  Accordion, Badges, Checklist, PlanningJourney, Reveal, Sections (PageHero, CTA)
   lib/
     scroll.ts            The single scroll controller (Lenis or native)
-    usePageSetup.ts      Page titles, scroll reset, hash targets, creates the one Lenis instance
-    motion.ts            Shared animation timings
-    iso.ts               Isometric projection helper for the SVG drawings
-    useActiveIndex.ts    Which timeline chapter is being read
-    useMediaQuery.ts     Media query hook
-  styles/
-    styles.css, redesign.css, cinematic.css   Original styles (minified), kept as the base layer
-    sections.css         New page sections (Home, Services, Projects, Contact)
-    about.css            About timeline
-    evolution.css        Isometric drawings (timeline and demo projects)
-public/images/           Published images (see "Images" below)
+    usePageSetup.ts      Page titles/meta, scroll reset, hash targets, creates the one Lenis instance
+    motion.ts, iso.ts, useActiveIndex.ts, useMediaQuery.ts, icons.ts
+  styles/                CSS (styles, redesign, cinematic, sections, about, evolution)
+public/images/           architectural-study.svg (hero fallback) and the favicon logo
 draft-assets/            Unused drafts, not published
 PERMITS_HUB_BOLT_PROMPT.md   Original design brief
 ```
 
-Page headings and short section intros sit inline in `src/pages/*.tsx` (and the three hero chapters in `ArchitecturalHero.tsx`). Everything list-like or repeatable is in `src/content/`.
+Headings, intros, labels and button text are "Page text" in the admin; everything list-like or repeatable has its own admin page (see below).
 
-## Content status: verified, draft and demo
+## Managing content (admin portal)
 
-Every piece of content falls into one of three states, defined in `src/content/types.ts`:
+Sign in at `/admin/`. The sidebar groups everything the site shows:
 
-- **verified**: supported by a public source, which is linked in the data (the Australian Business Register, a City of Melton planning report, or a Permits Hub Facebook post). The four Home FAQ answers marked `verified` come from the original website, as do the six service titles and one-line descriptions.
-- **draft**: written for this build from general planning knowledge. It renders normally, but the client must confirm it. Drafts are marked with `status: 'draft'` on FAQs and services, or with a `DRAFT` comment above the data.
-- **demo**: fictional. Demo content is always labelled on screen ("Demo project", "Illustrative", "Conceptual illustration") and never appears in the Home project showcase, the About timeline or the Services "related updates".
+| Admin section | What it controls |
+| --- | --- |
+| Enquiries | Every enquiry from the contact form (status, notes, email delivery). A badge shows new ones. |
+| Pages & search | **Page text** (about 300 headings, paragraphs and labels, grouped by page), **Images** (About photos), **Search & social (SEO)** (title, description and sharing image per page). |
+| Services | The five services (all fields, tick lists, stages, related projects), project stages, the service finder, who contributes, ways to work together, consultation preparation. |
+| Projects | Public updates and demo projects (facts, milestones, gallery, sources, cover image, home page position), and project categories with their typical considerations. |
+| FAQs | Questions by page (FAQs, Home, Services, Contact) and FAQ categories. |
+| Home page | Highlights strip, who we help, what people bring to us, common situations, coordination benefits, planning journey steps. |
+| About page | Timeline chapters, timeline drawing captions, principles, regions. |
+| Contact page | Useful to prepare, first-conversation checklist, what happens next, enquiry project types and stages. |
+| Settings | Logo, contact details, disclaimer, SEO basics (website address, business location, service areas) and the enquiry email settings. |
 
-The status is a review flag for the team. It is not shown to visitors, except for the demo labels.
+Headings use `*word*` for the italic style and a new line for a line break. Uploaded images are stored as WebP (SVG is kept).
 
-### Verified projects
+### Demo projects
 
-`verifiedProjects` in `src/content/projects.ts` holds the three public updates (St Leonards, Winchelsea, Winter Valley). Each record links to its Facebook post. Statuses are written "as reported" on the post date, and construction forecasts are presented as historical statements. To update a project, change `status`, `statusNote`, `milestones` and `nextSteps`, and add the new source to `sources` in `site.ts`.
+The four fictional demo projects (clinic, warehouse, townhouses, community hall) are seeded as projects of type **Demo project** and are always labelled "Demo project" on the site. They are hidden from search engines and the sitemap. To remove them, delete them in **Projects** (or untick *Show on website*); the Projects page drops every demo mention automatically once none remain.
 
-### Demo projects: replace or remove
+### Images
 
-The four demo projects live in `demoProjects` in `src/content/projects.ts`:
-
-1. Shopfront to allied health clinic (`demo-shopfront-clinic`)
-2. Warehouse extension and loading bay (`demo-warehouse-extension`)
-3. Three townhouses on a suburban lot (`demo-three-townhouses`)
-4. Community hall accessibility upgrade (`demo-community-hall`)
-
-**To remove them all:** set `export const demoProjects: DemoProject[] = []`. The Projects page adapts automatically. The "Source" filter, the demo count, the demo footnote and the demo wording in the page intro all disappear, and the type filters only show categories that still have projects. Old demo URLs fall through to the "project not found" page. `ProjectIllustration.tsx` can stay (it is only used by demos) or be deleted along with the `.pi-*` rules in `sections.css`.
-
-**To remove one:** delete its object from the array.
-
-**To replace one with real work:** move it into `verifiedProjects` and give it the `VerifiedProject` fields: `record: 'verified'`, `region`, `updateDate`, `statusNote`, a `cover` image, a `gallery` and `sources`. The type checker lists anything missing. Use a real slug without the `demo-` prefix.
-
-**To adjust a demo drawing:** each drawing in `ProjectIllustration.tsx` is wrapped in `<g transform="translate(x y)">`. These are set so every drawing is centred around (260, 170) of the 520 × 360 viewBox, with at least 30 units of margin, leaving room for the "Conceptual illustration" tag. If you change a drawing's geometry, adjust that translate.
-
-## Images
-
-All published images are in `public/images/` and were downloaded from Permits Hub's public Facebook posts (no hotlinks):
-
-| File | Size | Use |
-| --- | --- | --- |
-| `st-leonards-childcare.jpg` | 1080 × 1350 | Full announcement graphic, St Leonards gallery |
-| `winchelsea-render.jpg` | 1063 × 1417 | Full render, Winchelsea gallery |
-| `winchelsea-announcement.jpg` | 1080 × 1350 | Announcement graphic, Winchelsea gallery (**client to confirm it matches the linked post**) |
-| `winter-valley-swim-school.jpg` | 1080 × 1350 | Full announcement graphic, Winter Valley gallery |
-| `architectural-study.svg` | vector | Static hero study (reduced motion, WebGL fallback) |
-| `permits-hub-logo.jpg` | 40 × 40 | Header/footer logo and favicon (**low resolution, see missing assets**) |
-
-### Crops in `public/images/crops/`
-
-The portrait Facebook graphics don't work as landscape thumbnails, so each project has a landscape **cover crop** showing just the architectural render:
-
-| Crop | Size | Cropped from |
-| --- | --- | --- |
-| `crops/st-leonards-render.jpg` | 1080 × 644 | the render area of `st-leonards-childcare.jpg` |
-| `crops/winchelsea-render.jpg` | 1063 × 728 | the building in `winchelsea-render.jpg` |
-| `crops/winter-valley-views.jpg` | 1080 × 560 | the three circular views in `winter-valley-swim-school.jpg` |
-
-A project's `cover.src` points to its crop, and `cover.position` sets the CSS `object-position` focal point. The crop is used on project cards, the featured project, the Home showcase, the project overview figure, the About timeline and the Services "related updates". The full graphics stay unchanged in each project's `gallery` (shown with `fit: 'contain'` so nothing is cut off). Every caption says whether an image is a render or announcement artwork; none are photographs of completed buildings.
-
-To replace a crop, export a landscape JPEG at least 1000 px wide (between 3:2 and 2:1 works everywhere) at about 80% quality and under 150 KB. Then overwrite the file or update `cover.src`, and tune `cover.position` if the subject is off-centre.
-
-`draft-assets/` holds an unused generated hero image and a duplicate of the Winchelsea announcement. Neither is published.
+Project and About images live in the admin, not in `public/`. The seed images in `backend/seed_images/` are WebP versions of the Permits Hub Facebook graphics and the Pexels stock images the site already used. Replace any of them by editing the project or image in the admin; raster uploads are converted to WebP automatically.
 
 ## The 3D homepage hero
 
@@ -156,7 +112,7 @@ There is exactly **one** smooth-scroll controller for the whole app, created in 
 
 - Skip link to `<main>`, semantic landmarks, one `h1` per page, headings in order, `lang="en-AU"`, and a unique title on every page and project.
 - **Keyboard:** everything works by keyboard and has visible focus. The mobile menu closes with Escape and keeps focus on its toggle. The timeline and hero chapter controls are real buttons (`aria-current` / `aria-pressed`).
-- **Form:** labelled fields with required/optional text. On submit, an error summary (`role="alert"`) receives focus and links to each field. Fields get `aria-invalid` and `aria-describedby`, and an error clears as soon as its field is edited. The prepared email panel receives focus. The form says plainly that nothing is sent.
+- **Form:** labelled fields with required/optional text. On submit, an error summary (`role="alert"`) receives focus and links to each field. Fields get `aria-invalid` and `aria-describedby`, and an error clears as soon as its field is edited. The confirmation panel receives focus after sending.
 - **Accordions:** buttons with `aria-expanded` and `aria-controls`, and panels as labelled regions. Enter and Space work.
 - **Project filters:** toggle buttons with `aria-pressed`, and the result count is announced (`aria-live="polite"`). An empty result offers "Clear filters".
 - **Images and drawings:** content images have descriptive alt text that says whether they're renders or announcements. Decorative images use `alt=""`. SVG drawings are `role="img"` with a label saying they are conceptual. External links say "(opens in a new tab)" to screen readers.
@@ -168,11 +124,46 @@ There is exactly **one** smooth-scroll controller for the whole app, created in 
 
 The Contact map is an indicative Victoria view, not an office location. The Google Maps embed needs no API key. If it can't load, a drawn fallback map shows the public regions, and the card always offers an "Open in Google Maps" link. A verified address, project pins or a styled map (which needs a Maps API key) can be added later.
 
-## Backend later
+## Backend, admin portal and deployment
 
-The enquiry form validates locally and builds a `mailto:` link with a copyable message. To connect a Django REST Framework endpoint, replace `prepare()` in `src/pages/Contact.tsx` with a POST, keep the same validation, and add a privacy notice. Content in `src/content/` has the same shape an API would return.
+`backend/` is a Django + Django REST Framework project. `GET /api/site/` returns everything the site renders; `POST /api/enquiries/` stores an enquiry, emails a confirmation to the visitor from `permits@permitshub.com.au` and an alert to the addresses set in Site settings (bot-protected with a honeypot and rate limit).
+
+Local development:
+
+```bash
+cd backend
+python -m venv .venv && .venv/Scripts/activate   # macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+set DJANGO_DEBUG=true                              # macOS/Linux: export DJANGO_DEBUG=true
+python manage.py migrate
+python manage.py seed_content
+python manage.py createsuperuser
+python manage.py runserver 8000
+```
+
+Then run `npm run dev` in the project root.
+
+### Deploy on a Hostinger VPS (Docker)
+
+Requires a Hostinger **VPS** (shared hosting cannot run Docker) with Docker and the Compose plugin, and the domain's `A` record pointing at the VPS IP.
+
+```bash
+git clone <this repository> && cd <repo>
+cp .env.example .env      # fill in the secrets, domain and email password
+docker compose up --build -d
+```
+
+Caddy serves the React build, proxies `/api` and `/admin` to Django and gets the HTTPS certificate automatically. To update later: `git pull && docker compose up --build -d`. Data lives in the `pgdata` and `media` volumes. The enquiry email uses a Google app password for `permits@permitshub.com.au` (the domain's mail is on Google); add SPF and DKIM records so confirmations are not marked as spam. `vercel.json` is only needed if the frontend is hosted separately on Vercel; in that case set `VITE_API_URL` to the backend address and note that the server-rendered SEO tags only apply when pages are served through the Docker setup.
+
+### SEO and answer-engine optimisation
+
+- Every page address is served by Django with its own `<title>`, description, canonical and Open Graph tags, JSON-LD (business, website, breadcrumbs, services, articles, FAQ) and a plain-HTML copy of the content, so crawlers and AI engines can read it without JavaScript. React then takes over.
+- `/sitemap.xml`, `/robots.txt` and `/llms.txt` are generated from the live content. Demo projects are excluded.
+- Titles and descriptions are edited under **Search & social (SEO)** and in the SEO section of services, categories and projects.
 
 ## Client review list
+
+Content now lives in the admin portal, so the file names below refer to where this copy used to live: look for it under the matching admin section (Page text, Services, Projects, FAQs, Home page, About page, Contact page). The FAQs page also gained several answers written for search and answer engines (how to get a planning permit, cost, subdividing, childcare centres, zoning checks, due diligence): please review them too. The Contact FAQ "Does this form send my enquiry?" was rewritten because the form now sends enquiries.
 
 Before publishing, please confirm or supply the following.
 
@@ -211,6 +202,6 @@ Before publishing, please confirm or supply the following.
 - Every page (Home, Services, Projects, a verified project, a demo project, About, Contact) was checked at 320, 390, 768, 1024 and 1440 px, with normal and reduced motion, against both the dev server and the production build. Each run checked horizontal overflow, elements spilling off-screen, clipped text, broken images, and console or page errors, and was followed by a visual review of every page.
 - Scripted checks covered the mobile menu, the form's errors and prepared email, the enquiry starter, the project filters, the accordions, the sticky timeline (at 1024 × 768, at 1440 × 900, and its single-column fallback for short or narrow screens), the hero chapter controls, the skip link and hash deep links.
 
-**Limitations of the testing environment:** Google Fonts and the Google Maps embed were blocked, so text was rendered in fallback fonts and only the map's fallback was seen. WebGL was tested only with software rendering (SwiftShader) in headless Chromium, not on real GPUs, and Safari and Firefox were not tested. The reference site home3ds.com could only be read as static markup, not experienced with its animations. The enquiry form is frontend-only and sends nothing.
+**Limitations of the testing environment:** Google Fonts and the Google Maps embed were blocked, so text was rendered in fallback fonts and only the map's fallback was seen. WebGL was tested only with software rendering (SwiftShader) in headless Chromium, not on real GPUs, and Safari and Firefox were not tested. The reference site home3ds.com could only be read as static markup, not experienced with its animations. The enquiry form was frontend-only at the time of that testing round; it now posts to the backend.
 
 Three.js references: [responsive rendering](https://threejs.org/manual/pages/responsive.html) and [resource cleanup](https://threejs.org/manual/pages/cleanup.html).

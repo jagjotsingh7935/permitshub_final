@@ -1,12 +1,23 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import Lenis from 'lenis'
-import { pageTitles } from '../content'
+import { useSite } from '../site/SiteProvider'
 import { scrollToElement, scrollToPosition, setPageScroller } from './scroll'
+
+function setHead(selector: string, attribute: string, value: string, create?: () => HTMLElement) {
+  let element = document.head.querySelector<HTMLElement>(selector)
+  if (!element) {
+    if (!create) return
+    element = create()
+    document.head.appendChild(element)
+  }
+  element.setAttribute(attribute, value)
+}
 
 /** Page titles, scroll reset, hash targets and the one Lenis instance for the whole app. */
 export function usePageSetup() {
   const location = useLocation()
+  const { pages, siteUrl } = useSite()
 
   useEffect(() => {
     let frame = 0
@@ -22,10 +33,20 @@ export function usePageSetup() {
       }
       frame = requestAnimationFrame(seek)
     }
-    const fallback = location.pathname.startsWith('/projects/') ? 'Project — Permits Hub' : 'Permits Hub'
-    document.title = pageTitles[location.pathname] ?? fallback
     return () => cancelAnimationFrame(frame)
   }, [location.pathname, location.hash])
+
+  // The server already renders these tags for the first load; this keeps them right when navigating inside the app.
+  useEffect(() => {
+    const page = pages[location.pathname] ?? pages['/']
+    if (!page) return
+    document.title = page.title
+    setHead('meta[name="description"]', 'content', page.description, () => { const el = document.createElement('meta'); el.setAttribute('name', 'description'); return el })
+    setHead('link[rel="canonical"]', 'href', `${siteUrl}${location.pathname}`, () => { const el = document.createElement('link'); el.setAttribute('rel', 'canonical'); return el })
+    setHead('meta[property="og:title"]', 'content', page.title)
+    setHead('meta[property="og:description"]', 'content', page.description)
+    setHead('meta[property="og:url"]', 'content', `${siteUrl}${location.pathname}`)
+  }, [location.pathname, pages, siteUrl])
 
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')

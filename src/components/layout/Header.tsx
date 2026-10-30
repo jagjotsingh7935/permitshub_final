@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { ArrowUpRight, ChevronDown, Menu, X } from 'lucide-react'
-import { navigation, services } from '../../content'
+import { navigation } from '../../content'
+import { useSite } from '../../site/SiteProvider'
 import { Brand } from './Brand'
 
 export function Header() {
+  const { t, services } = useSite()
   const [open, setOpen] = useState(false)
   const [servicesOpen, setServicesOpen] = useState(false)
   const location = useLocation()
@@ -41,7 +43,7 @@ export function Header() {
             </div>
           ) : <NavLink key={item.to} to={item.to} end={item.to === '/'}>{item.label}</NavLink>)}
         </nav>
-        <Link to="/contact" className="button button--primary header-cta">Discuss your project <ArrowUpRight size={17} strokeWidth={2} /></Link>
+        <Link to="/contact" className="button button--primary header-cta">{t('header.cta')} <ArrowUpRight size={17} strokeWidth={2} /></Link>
         <button className="menu-toggle" type="button" onClick={() => setOpen(!open)} aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="mobile-navigation">
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -56,7 +58,7 @@ export function Header() {
                 </button>
                 {servicesOpen && (
                   <ul className="mobile-nav__sub" id="mobile-services">
-                    <li><NavLink to={item.to} onClick={() => setOpen(false)}>All services</NavLink></li>
+                    <li><NavLink to={item.to} onClick={() => setOpen(false)}>{t('header.all_services')}</NavLink></li>
                     {services.map(service => (
                       <li key={service.id}><Link to={`/services#${service.id}`} onClick={() => setOpen(false)}><span>{service.number}</span>{service.title}</Link></li>
                     ))}
@@ -68,7 +70,7 @@ export function Header() {
                 <span>0{index + 1}</span>{item.label}<ArrowUpRight size={18} />
               </NavLink>
             ))}
-            <p>Town planning support for projects across Victoria.</p>
+            <p>{t('header.mobile_blurb')}</p>
           </div>
         </nav>
       )}

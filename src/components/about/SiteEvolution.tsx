@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { evolutionStages } from '../../content'
+import { useSite } from '../../site/SiteProvider'
 import { createIso, type Point3 } from '../../lib/iso'
 
 /*
@@ -92,7 +92,8 @@ function Person({ x, y, tone = 'navy' }: { x: number; y: number; tone?: 'navy' |
 }
 
 export function SiteEvolution({ stage, label }: { stage: number; label?: string }) {
-  const current = evolutionStages[stage] ?? evolutionStages[0]
+  const { evolutionStages } = useSite()
+  const current = evolutionStages[stage] ?? evolutionStages[0] ?? { label: '', caption: '' }
 
   // Geometry
   const slab = iso.box(-8, -6, -1.4, 80, 44, 1.4)

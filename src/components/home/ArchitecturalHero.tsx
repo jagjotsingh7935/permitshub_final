@@ -4,14 +4,11 @@ import { ArrowDown, ArrowUpRight, MoveUpRight } from 'lucide-react'
 import { useReducedMotion } from 'motion/react'
 import type { ArchitecturalController } from './architecturalScene'
 import { scrollToPosition } from '../../lib/scroll'
-
-const chapters = [
-  { label: 'The possibility', title: <>Good places.<br />Start with<br /><em>a clear plan.</em></>, body: 'From a first idea to the next approval. Town planning guidance for the places our communities need.', note: 'A new perspective on what comes next.' },
-  { label: 'The planning', title: <>Every detail.<br />Part of<br /><em>a bigger picture.</em></>, body: 'Site context. Planning controls. A considered application. Bringing the moving parts into a clearer view.', note: 'Understanding how everything fits together.' },
-  { label: 'The next chapter', title: <>Your vision.<br />A considered<br /><em>way forward.</em></>, body: 'Take the next step with a practical understanding of your site, your project and the planning journey ahead.', note: 'The right conversation can open possibilities.' },
-]
+import { useSite } from '../../site/SiteProvider'
 
 export function ArchitecturalHero() {
+  const { t, rt } = useSite()
+  const chapters = [1, 2, 3].map(n => ({ label: t(`home.hero.${n}.label`), title: rt(`home.hero.${n}.title`), body: t(`home.hero.${n}.body`) }))
   const section = useRef<HTMLElement>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
   const controller = useRef<ArchitecturalController | null>(null)
@@ -79,13 +76,13 @@ export function ArchitecturalHero() {
   return <section className={`architectural-story ${reduced ? 'architectural-story--still' : ''}`} ref={section} aria-label="A clearer planning journey">
     <div className="architectural-stage">
       <div className="architectural-stage__grid" aria-hidden="true" />
-      <div className="container architectural-stage__top"><span><i /> TOWN PLANNING / VICTORIA</span><a href="#planning-content">Skip to the details <ArrowDown size={13} /></a></div>
+      <div className="container architectural-stage__top"><span><i /> {t('home.hero.top_label')}</span><a href="#planning-content">{t('home.hero.skip')} <ArrowDown size={13} /></a></div>
       <div className="container architectural-stage__body">
         <div className="architectural-copy">
           <span className="architectural-copy__chapter">0{chapter + 1} / {chapters[chapter].label}</span>
           <div key={chapter} className="architectural-copy__text"><h1>{chapters[chapter].title}</h1><p>{chapters[chapter].body}</p></div>
-          <Link to="/contact" className="button button--primary">Discuss your project <ArrowUpRight size={18} /></Link>
-          <Link to="/projects" className="architectural-copy__link">Explore our work <MoveUpRight size={15} /></Link>
+          <Link to="/contact" className="button button--primary">{t('home.hero.button')} <ArrowUpRight size={18} /></Link>
+          <Link to="/projects" className="architectural-copy__link">{t('home.hero.link')} <MoveUpRight size={15} /></Link>
         </div>
         <figure className={`architectural-model ${ready && !reduced ? 'architectural-model--ready' : ''}`}>
           <div className="architectural-model__viewport">
@@ -93,13 +90,13 @@ export function ArchitecturalHero() {
             <canvas ref={canvas} aria-hidden="true" />
           </div>
           <div className="architectural-model__north" aria-hidden="true">N<span>↑</span></div>
-          <figcaption><span className="architectural-model__caption-title">THE COMMUNITY PAVILION</span><span>Concept study · illustrative architecture</span></figcaption>
-          <div className="architectural-model__scale" aria-hidden="true"><i /><span>PERMITS HUB / DESIGN PERSPECTIVES</span></div>
+          <figcaption><span className="architectural-model__caption-title">{t('home.hero.caption_title')}</span><span>{t('home.hero.caption_text')}</span></figcaption>
+          <div className="architectural-model__scale" aria-hidden="true"><i /><span>{t('home.hero.scale_label')}</span></div>
         </figure>
       </div>
       <div className="container architectural-stage__bottom">
         <div className="architectural-chapters" role="group" aria-label="Explore the three planning chapters">{chapters.map((item, index) => <button type="button" key={item.label} aria-pressed={chapter === index} onClick={() => selectChapter(index)}><span>0{index + 1}</span>{item.label}</button>)}</div>
-        <span className="architectural-scroll"><ArrowDown size={16} />Scroll to explore</span>
+        <span className="architectural-scroll"><ArrowDown size={16} />{t('home.hero.scroll')}</span>
       </div>
       <div className="architectural-progress" aria-hidden="true"><div ref={progressBar} /></div>
     </div>

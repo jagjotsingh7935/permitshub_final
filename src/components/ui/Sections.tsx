@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowUpRight } from 'lucide-react'
+import { useSite } from '../../site/SiteProvider'
 import { Reveal } from './Reveal'
 
 export function SectionIntro({ eyebrow, title, body, light = false, id }: { eyebrow?: string; title: ReactNode; body?: ReactNode; light?: boolean; id?: string }) {
@@ -31,15 +32,16 @@ export function PageHero({ eyebrow, title, body, number, children }: { eyebrow: 
 }
 
 export function CallToAction({ compact = false, title, body }: { compact?: boolean; title?: ReactNode; body?: string }) {
+  const { t, rt } = useSite()
   return (
     <section className={`cta-section ${compact ? 'cta-section--compact' : ''}`}>
       <div className="container cta-section__inner">
         <div className="cta-section__mark" aria-hidden="true"><ArrowUpRight size={250} strokeWidth={0.7} /></div>
         <Reveal>
-          <span className="eyebrow eyebrow--on-dark"><span className="eyebrow__line" />Your next step starts here</span>
-          <h2>{title ?? <>Have a site or project<br /><em>in mind?</em></>}</h2>
-          <p>{body ?? 'Tell us what you are planning. We’ll help you start the right conversation.'}</p>
-          <Link to="/contact" className="button button--white">Start an enquiry <ArrowUpRight size={19} /></Link>
+          <span className="eyebrow eyebrow--on-dark"><span className="eyebrow__line" />{t('cta.eyebrow')}</span>
+          <h2>{title ?? rt('cta.title')}</h2>
+          <p>{body ?? t('cta.body')}</p>
+          <Link to="/contact" className="button button--white">{t('cta.button')} <ArrowUpRight size={19} /></Link>
         </Reveal>
       </div>
     </section>

@@ -1,4 +1,4 @@
-import { planningJourney } from '../../content'
+import { useSite } from '../../site/SiteProvider'
 import { RevealGroup, RevealItem } from './Reveal'
 
 /**
@@ -6,6 +6,7 @@ import { RevealGroup, RevealItem } from './Reveal'
  * `list` is the original ruled list; `diagram` is a horizontal process diagram on wide screens.
  */
 export function PlanningJourney({ variant = 'list' }: { variant?: 'list' | 'diagram' }) {
+  const { t, planningJourney } = useSite()
   if (variant === 'diagram') {
     return (
       <RevealGroup as="ol" className="journey-diagram">
@@ -14,7 +15,7 @@ export function PlanningJourney({ variant = 'list' }: { variant?: 'list' | 'diag
             <span className="journey-diagram__node" aria-hidden="true"><span>{step.number}</span></span>
             <h3>{step.title}</h3>
             <p>{step.body}</p>
-            <p className="journey-diagram__bring"><span>Useful to bring</span>{step.bring}</p>
+            <p className="journey-diagram__bring"><span>{t('journey.bring')}</span>{step.bring}</p>
           </RevealItem>
         ))}
       </RevealGroup>

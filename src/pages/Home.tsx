@@ -12,16 +12,10 @@ import { Accordion } from '../components/ui/Accordion'
 import { PlanningJourney } from '../components/ui/PlanningJourney'
 import { Reveal, RevealGroup, RevealItem } from '../components/ui/Reveal'
 import { CallToAction, SectionIntro } from '../components/ui/Sections'
-import { audiences, challenges, chapters, enquiryGroups, homeFaqs } from '../content'
-
-const coordinationBenefits = [
-  'One place to ask “where are we up to?”',
-  'Drawings and reports checked against each other before they go to council',
-  'Council requests tracked and responded to in a coordinated way',
-  'The move from planning approval to building permit managed, not left to chance',
-]
+import { useSite } from '../site/SiteProvider'
 
 export default function Home() {
+  const { t, rt, audiences, challenges, chapters, enquiryGroups, homeFaqs, coordinationBenefits } = useSite()
   const milestones = chapters.filter(chapter => chapter.type === 'milestone')
   return (
     <>
@@ -34,15 +28,15 @@ export default function Home() {
       <section className="home-intro" id="planning-content" aria-labelledby="intro-title">
         <div className="container home-intro__grid">
           <Reveal className="home-intro__lead">
-            <span className="eyebrow"><span className="eyebrow__line" />Permits Hub</span>
-            <h2 id="intro-title">Town planning guidance for the places communities need, from the first site question to the next approval.</h2>
+            <span className="eyebrow"><span className="eyebrow__line" />{t('home.intro.eyebrow')}</span>
+            <h2 id="intro-title">{t('home.intro.title')}</h2>
           </Reveal>
           <div className="home-intro__body">
             <Reveal>
-              <p>With over 16 years of town planning experience, Permits Hub is based in Melbourne. Our multi-disciplinary services provide all-in-one-stop development solutions, from town planning to construction completion.</p>
-              <p>Public project updates include childcare centres in St Leonards and Winchelsea and a swim school in Ballarat.</p>
+              <p>{t('home.intro.p1')}</p>
+              <p>{t('home.intro.p2')}</p>
             </Reveal>
-            <h3 className="home-intro__subhead">Who we help</h3>
+            <h3 className="home-intro__subhead">{t('home.intro.subhead')}</h3>
             <RevealGroup as="ul" className="audience-rows">
               {audiences.map(audience => (
                 <RevealItem as="li" key={audience.title}><strong>{audience.title}</strong><span>{audience.body}</span></RevealItem>
@@ -59,9 +53,9 @@ export default function Home() {
           <Reveal>
             <SectionIntro
               id="home-coordination-title"
-              eyebrow="Why coordination matters"
-              title={<>Many parties, <em style={{ color: '#6db2fb', fontStyle: 'normal' }}>one clear line</em></>}
-              body="A development can involve half a dozen parties before construction starts. Without a coordinator, the owner becomes the switchboard. With one, information flows through a single point that keeps it consistent."
+              eyebrow={t('coord.eyebrow')}
+              title={rt('coord.title', { color: '#6db2fb', fontStyle: 'normal' })}
+              body={t('coord.body')}
               light
             />
           </Reveal>
@@ -69,7 +63,7 @@ export default function Home() {
           <div className="coordination-grid">
             <Reveal>
               <figure className="coordination-card">
-                <figcaption>Without a coordinator</figcaption>
+                <figcaption>{t('coord.without')}</figcaption>
                 <div className="coordination-card__visual">
                   <WithoutCoordination />
                 </div>
@@ -77,7 +71,7 @@ export default function Home() {
             </Reveal>
             <Reveal delay={0.1}>
               <figure className="coordination-card coordination-card--highlight">
-                <figcaption>With Permits Hub</figcaption>
+                <figcaption>{t('coord.with')}</figcaption>
                 <div className="coordination-card__visual">
                   <WithCoordination />
                 </div>
@@ -102,8 +96,8 @@ export default function Home() {
       <section className="section section--services" aria-labelledby="services-title">
         <div className="container">
           <div className="section-head">
-            <Reveal><SectionIntro id="services-title" eyebrow="What we do" title={<>A smarter way through<br /><em>the planning process.</em></>} body="Every development starts with different questions. We bring the planning, approvals and practical next steps into focus." /></Reveal>
-            <Reveal className="section-head__action"><Link to="/services" className="text-link">All services <CircleArrowRight size={22} /></Link></Reveal>
+            <Reveal><SectionIntro id="services-title" eyebrow={t('home.services.eyebrow')} title={rt('home.services.title')} body={t('home.services.body')} /></Reveal>
+            <Reveal className="section-head__action"><Link to="/services" className="text-link">{t('home.services.link')} <CircleArrowRight size={22} /></Link></Reveal>
           </div>
           <ServicesEditorial />
         </div>
@@ -113,8 +107,8 @@ export default function Home() {
       <section className="enquiry-types" aria-labelledby="enquiry-title">
         <div className="container">
           <div className="enquiry-types__head">
-            <h2 id="enquiry-title">What people bring to us</h2>
-            <p>Common kinds of planning enquiry. Every site is different, so the scope of any work is confirmed after a first conversation.</p>
+            <h2 id="enquiry-title">{t('home.enquiry.title')}</h2>
+            <p>{t('home.enquiry.body')}</p>
           </div>
           <RevealGroup className="enquiry-types__grid">
             {enquiryGroups.map(group => (
@@ -132,10 +126,10 @@ export default function Home() {
         <div className="container challenges__grid">
           <div className="challenges__intro">
             <Reveal>
-              <span className="eyebrow eyebrow--on-dark"><span className="eyebrow__line" />When planning gets stuck</span>
-              <h2 id="challenges-title">Six situations we hear about often.</h2>
-              <p>Planning problems are rarely unusual. Most have a sensible first step, even when the full answer depends on the site and the planning scheme.</p>
-              <Link to="/contact" className="text-link text-link--light">Talk through your situation <ArrowRight size={18} /></Link>
+              <span className="eyebrow eyebrow--on-dark"><span className="eyebrow__line" />{t('home.challenges.eyebrow')}</span>
+              <h2 id="challenges-title">{t('home.challenges.title')}</h2>
+              <p>{t('home.challenges.body')}</p>
+              <Link to="/contact" className="text-link text-link--light">{t('home.challenges.link')} <ArrowRight size={18} /></Link>
             </Reveal>
           </div>
           <RevealGroup as="ol" className="challenges__list">
@@ -143,7 +137,7 @@ export default function Home() {
               <RevealItem as="li" key={item.challenge}>
                 <span className="challenges__index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
                 <h3>{item.challenge}</h3>
-                <p><span className="sr-only">A useful first step: </span>{item.response}</p>
+                <p><span className="sr-only">{t('home.challenges.step_label')} </span>{item.response}</p>
               </RevealItem>
             ))}
           </RevealGroup>
@@ -154,7 +148,7 @@ export default function Home() {
       <section className="section journey-section" aria-labelledby="journey-title">
         <div className="container">
           <div className="section-head">
-            <Reveal><SectionIntro id="journey-title" eyebrow="The planning journey" title={<>A process you can<br /><em>see your way through.</em></>} body="How a typical project moves from a first idea toward a planning decision. Timing and steps vary with the site and proposal." /></Reveal>
+            <Reveal><SectionIntro id="journey-title" eyebrow={t('home.journey.eyebrow')} title={rt('home.journey.title')} body={t('home.journey.body')} /></Reveal>
           </div>
           <PlanningJourney variant="diagram" />
         </div>
@@ -164,12 +158,12 @@ export default function Home() {
       <section className="section projects-section" aria-labelledby="projects-title">
         <div className="container">
           <div className="section-head">
-            <Reveal><SectionIntro id="projects-title" eyebrow="Project updates" title={<>Ideas taking shape<br /><em>across Victoria.</em></>} body="Selected updates shared publicly by Permits Hub." /></Reveal>
-            <Reveal className="section-head__action"><Link to="/projects" className="text-link">Explore our work <CircleArrowRight size={22} /></Link></Reveal>
+            <Reveal><SectionIntro id="projects-title" eyebrow={t('home.projects.eyebrow')} title={rt('home.projects.title')} body={t('home.projects.body')} /></Reveal>
+            <Reveal className="section-head__action"><Link to="/projects" className="text-link">{t('home.projects.link')} <CircleArrowRight size={22} /></Link></Reveal>
           </div>
           <Reveal><PortfolioSectors /></Reveal>
           <Reveal><ProjectShowcase /></Reveal>
-          <p className="project-note">Images and details are from Permits Hub’s public Facebook updates. The visuals are architectural renders and announcement artwork, not photographs of completed buildings.</p>
+          <p className="project-note">{t('home.projects.note')}</p>
         </div>
       </section>
 
@@ -178,21 +172,21 @@ export default function Home() {
         <div className="container about-preview__grid">
           <Reveal className="about-preview__visual">
             <figure>
-              <SiteEvolution stage={4} label="Conceptual illustration of a community building on its site" />
-              <figcaption>Conceptual illustration from the About timeline. Not a Permits Hub project.</figcaption>
+              <SiteEvolution stage={4} label={t('home.about.alt')} />
+              <figcaption>{t('home.about.caption')}</figcaption>
             </figure>
           </Reveal>
           <div className="about-preview__copy">
             <Reveal>
-              <h2 id="about-preview-title">A short history, in the public record.</h2>
-              <p>The About page follows Permits Hub from its registration to recent approvals, alongside a drawing that grows from bare land to a finished place.</p>
+              <h2 id="about-preview-title">{t('home.about.title')}</h2>
+              <p>{t('home.about.body')}</p>
             </Reveal>
             <RevealGroup as="ol" className="about-preview__milestones">
               {milestones.map(chapter => (
                 <RevealItem as="li" key={chapter.id}><span>{chapter.marker}</span><strong>{chapter.title}</strong></RevealItem>
               ))}
             </RevealGroup>
-            <Link to="/about" className="button button--outline">Read our story <ArrowUpRight size={18} /></Link>
+            <Link to="/about" className="button button--outline">{t('home.about.button')} <ArrowUpRight size={18} /></Link>
           </div>
         </div>
       </section>
@@ -201,10 +195,10 @@ export default function Home() {
       <section className="starter-band" aria-labelledby="starter-title">
         <div className="container starter-band__grid">
           <div>
-            <span className="eyebrow"><span className="eyebrow__line" />A useful first step</span>
-            <h2 id="starter-title">Every site has<br /><em>its own story.</em></h2>
-            <p>Tell us the basics. We’ll carry them into a focused enquiry you can send directly to the team.</p>
-            <span className="starter-band__aside">No account. No commitment. Just a clearer starting point.</span>
+            <span className="eyebrow"><span className="eyebrow__line" />{t('home.starter.eyebrow')}</span>
+            <h2 id="starter-title">{rt('home.starter.title')}</h2>
+            <p>{t('home.starter.body')}</p>
+            <span className="starter-band__aside">{t('home.starter.aside')}</span>
           </div>
           <ProjectStarter />
         </div>
@@ -214,10 +208,10 @@ export default function Home() {
       <section className="section faq-section" aria-labelledby="faq-title">
         <div className="container faq-section__inner">
           <Reveal>
-            <SectionIntro id="faq-title" eyebrow="Good to know" title={<>Answers for the<br /><em>first steps.</em></>} body="A few useful starting points before we learn about your project." />
-            <a href="https://www.planning.vic.gov.au/" target="_blank" rel="noreferrer" className="text-link faq-section__link">Victorian planning information <ExternalLink size={15} /><span className="sr-only"> (opens in a new tab)</span></a>
+            <SectionIntro id="faq-title" eyebrow={t('home.faq.eyebrow')} title={rt('home.faq.title')} body={t('home.faq.body')} />
+            <a href="https://www.planning.vic.gov.au/" target="_blank" rel="noreferrer" className="text-link faq-section__link">{t('home.faq.link')} <ExternalLink size={15} /><span className="sr-only"> (opens in a new tab)</span></a>
           </Reveal>
-          <Accordion items={homeFaqs.map((faq, index) => ({ id: `home-faq-${index}`, title: faq.question, content: <p>{faq.answer}</p> }))} />
+          <Accordion items={homeFaqs.map(faq => ({ id: faq.id, title: faq.question, content: <p>{faq.answer}</p> }))} />
         </div>
       </section>
 

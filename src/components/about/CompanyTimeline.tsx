@@ -2,19 +2,14 @@ import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion, useScroll, useSpring, useTransform, type Variants } from 'motion/react'
 import { ArrowDown, ArrowUpRight, Check, ExternalLink } from 'lucide-react'
-import { chapters, evolutionStages, facebookUrl, formatDate, publicRegions, verifiedProjects, type Chapter } from '../../content'
+import { mediaUrl } from '../../api/client'
+import { formatDate, type Chapter } from '../../content'
+import { useSite, type Site } from '../../site/SiteProvider'
 import { easeOut } from '../../lib/motion'
 import { scrollToElement } from '../../lib/scroll'
 import { useActiveIndex } from '../../lib/useActiveIndex'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import { SiteEvolution } from './SiteEvolution'
-
-const typeLabels: Record<Chapter['type'], string> = {
-  milestone: 'Dated milestone',
-  perspective: 'Our approach',
-  now: 'Current work',
-  next: 'Your next step',
-}
 
 const chapterVariants: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } }
 const itemVariants: Variants = {
@@ -22,14 +17,15 @@ const itemVariants: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: easeOut } },
 }
 
-function ChapterMedia({ chapter }: { chapter: Chapter }) {
+function ChapterMedia({ chapter, site }: { chapter: Chapter; site: Site }) {
+  const { t, verifiedProjects, publicRegions, settings } = site
   const media = chapter.media
   if (media.kind === 'record') {
     return (
       <div className="chapter-record">
         <p className="chapter-record__title">{media.title}</p>
         <dl>{media.lines.map(line => <div key={line.label}><dt>{line.label}</dt><dd>{line.value}</dd></div>)}</dl>
-        <a href={media.source.url} target="_blank" rel="noreferrer">{media.source.label} <ExternalLink size={13} /><span className="sr-only"> (opens in a new tab)</span></a>
+        {media.source && <a href={media.source.url} target="_blank" rel="noreferrer">{media.source.label} <ExternalLink size={13} /><span className="sr-only"> (opens in a new tab)</span></a>}
       </div>
     )
   }
@@ -48,7 +44,7 @@ function ChapterMedia({ chapter }: { chapter: Chapter }) {
         {items.map(project => (
           <li key={project.slug}>
             <Link to={`/projects/${project.slug}`}>
-              <span className="chapter-projects__image"><img src={project.cover.src} alt="" loading="lazy" style={{ objectPosition: project.cover.position }} /></span>
+              <span className="chapter-projects__image">{project.cover && <img src={mediaUrl(project.cover.src)} alt="" loading="lazy" style={{ objectPosition: project.cover.position ?? undefined }} />}</span>
               <span className="chapter-projects__date">{formatDate(project.updateDate)}</span>
               <strong>{project.title}</strong>
               <small>{project.place}</small>
@@ -69,14 +65,14 @@ function ChapterMedia({ chapter }: { chapter: Chapter }) {
     return (
       <div className="chapter-regions">
         <ul>{publicRegions.map(region => <li key={region.name}><strong>{region.name}</strong><span>{region.note}</span></li>)}</ul>
-        <a href={facebookUrl} target="_blank" rel="noreferrer" className="text-link">Latest updates on Facebook <ExternalLink size={15} /><span className="sr-only"> (opens in a new tab)</span></a>
+        <a href={settings.facebookUrl} target="_blank" rel="noreferrer" className="text-link">{t('about.timeline.facebook_link')} <ExternalLink size={15} /><span className="sr-only"> (opens in a new tab)</span></a>
       </div>
     )
   }
   return (
     <div className="chapter-cta">
-      <Link to="/contact" className="button button--primary">Start a conversation <ArrowUpRight size={18} /></Link>
-      <Link to="/services" className="text-link">See how we can help <ArrowUpRight size={16} /></Link>
+      <Link to="/contact" className="button button--primary">{t('about.timeline.cta_button')} <ArrowUpRight size={18} /></Link>
+      <Link to="/services" className="text-link">{t('about.timeline.cta_link')} <ArrowUpRight size={16} /></Link>
     </div>
   )
 }
@@ -89,6 +85,14 @@ function ChapterMedia({ chapter }: { chapter: Chapter }) {
  * - Reduced motion: rail shown full, no reveals or camera movement; all content is present regardless.
  */
 export function CompanyTimeline() {
+  const site = useSite()
+  const { t, rt, chapters, evolutionStages } = site
+  const typeLabels: Record<Chapter['type'], string> = {
+    milestone: t('about.timeline.type_milestone'),
+    perspective: t('about.timeline.type_perspective'),
+    now: t('about.timeline.type_now'),
+    next: t('about.timeline.type_next'),
+  }
   const listRef = useRef<HTMLOListElement>(null)
   const chapterRefs = useRef<(HTMLElement | null)[]>([])
   const reduced = useReducedMotion()
@@ -102,7 +106,7 @@ export function CompanyTimeline() {
   const drift = useTransform(scrollYProgress, [0, 1], [12, -12])
 
   const current = chapters[active]
-  const stage = evolutionStages[current.stage]
+  const stage = evolutionStages[current?.stage] ?? { label: '', caption: '' }
 
   function jump(index: number) {
     const element = chapterRefs.current[index]
@@ -114,15 +118,15 @@ export function CompanyTimeline() {
       <div className="container">
         <header className="timeline__header">
           <div>
-            <span className="eyebrow"><span className="eyebrow__line" />Our journey</span>
-            <h2 id="timeline-title">From a registered business to the <em>next site.</em></h2>
+            <span className="eyebrow"><span className="eyebrow__line" />{t('about.timeline.eyebrow')}</span>
+            <h2 id="timeline-title">{rt('about.timeline.title')}</h2>
           </div>
           <div>
-            <p>Seven chapters. Dated entries are company history backed by a public source. Undated entries describe how Permits Hub approaches its work.</p>
+            <p>{t('about.timeline.body')}</p>
             <ul className="timeline__legend" aria-label="Timeline key">
-              <li><i className="legend-dot legend-dot--milestone" />Dated milestone with source</li>
-              <li><i className="legend-dot legend-dot--perspective" />Approach or current work</li>
-              <li><i className="legend-dot legend-dot--next" />Your next step</li>
+              <li><i className="legend-dot legend-dot--milestone" />{t('about.timeline.key_milestone')}</li>
+              <li><i className="legend-dot legend-dot--perspective" />{t('about.timeline.key_approach')}</li>
+              <li><i className="legend-dot legend-dot--next" />{t('about.timeline.key_next')}</li>
             </ul>
           </div>
         </header>
@@ -155,11 +159,11 @@ export function CompanyTimeline() {
                     <motion.h3 id={`chapter-title-${chapter.id}`} variants={itemVariants}>{chapter.title}</motion.h3>
                     <motion.p className="chapter__eyebrow" variants={itemVariants}>{chapter.eyebrow}</motion.p>
                     {chapter.body.map(paragraph => <motion.p key={paragraph.slice(0, 24)} className="chapter__body" variants={itemVariants}>{paragraph}</motion.p>)}
-                    <motion.div className="chapter__media" variants={itemVariants}><ChapterMedia chapter={chapter} /></motion.div>
+                    <motion.div className="chapter__media" variants={itemVariants}><ChapterMedia chapter={chapter} site={site} /></motion.div>
                     {!wide && (
                       <motion.figure className="chapter__visual" variants={itemVariants}>
                         <SiteEvolution stage={chapter.stage} />
-                        <figcaption><strong>{evolutionStages[chapter.stage].label}.</strong> Conceptual illustration, not a Permits Hub project.</figcaption>
+                        <figcaption><strong>{evolutionStages[chapter.stage]?.label}.</strong> {t('about.timeline.disclaimer')}</figcaption>
                       </motion.figure>
                     )}
                   </motion.article>
@@ -168,8 +172,8 @@ export function CompanyTimeline() {
             </ol>
             <div className="timeline__end">
               <span className="timeline__end-node" aria-hidden="true" />
-              <p>End of the timeline. Below: how Permits Hub works and where it has worked.</p>
-              <a href="#how-we-work" className="text-link">Continue reading <ArrowDown size={16} /></a>
+              <p>{t('about.timeline.end')}</p>
+              <a href="#how-we-work" className="text-link">{t('about.timeline.continue')} <ArrowDown size={16} /></a>
             </div>
           </div>
 
@@ -178,16 +182,16 @@ export function CompanyTimeline() {
               <div className="timeline__panel-inner">
                 <div className="timeline__panel-top">
                   <span>Chapter {active + 1} of {chapters.length}</span>
-                  <span>{typeLabels[current.type]}</span>
+                  <span>{current && typeLabels[current.type]}</span>
                 </div>
                 <div className="timeline__stage-frame">
                   <motion.div className="timeline__stage" style={reduced ? undefined : { rotateX: tilt, y: drift }}>
-                    <SiteEvolution stage={current.stage} />
+                    <SiteEvolution stage={current?.stage ?? 0} />
                   </motion.div>
                 </div>
                 <div className="timeline__caption" aria-live="polite">
                   <p><strong>{stage.label}.</strong> {stage.caption}</p>
-                  <p className="timeline__disclaimer">Conceptual illustration. Not a Permits Hub project.</p>
+                  <p className="timeline__disclaimer">{t('about.timeline.disclaimer')}</p>
                 </div>
                 <nav className="timeline__nav" aria-label="Timeline chapters">
                   <ol>
