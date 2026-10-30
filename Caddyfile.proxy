@@ -1,0 +1,57 @@
+# Used when a reverse proxy on the host (for example nginx) already owns ports 80/443 and handles HTTPS.
+# Caddy then only speaks plain HTTP inside Docker, published on 127.0.0.1 only (see docker-compose.proxy.yml).
+{
+	auto_https off
+	servers {
+		# Keep X-Forwarded-For / -Proto sent by the host proxy so Django sees the real visitor address and https.
+		trusted_proxies static private_ranges
+	}
+}
+
+# Internal only (not published by Docker): lets the backend read the built index.html.
+:8081 {
+	root * /srv/www
+	file_server
+}
+
+:80 {
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	# Django: REST API, admin portal, sitemap/robots/llms.txt and the admin's static files
+	@django path /api/* /admin /admin/* /django-static/* /sitemap.xml /robots.txt /llms.txt
+	handle @django {
+		reverse_proxy backend:8000
+	}
+
+	# Uploaded images, straight from the shared volume
+	handle /media/* {
+		root * /srv
+		header Cache-Control "public, max-age=2592000"
+		file_server
+	}
+
+	handle {
+		root * /srv/www
+
+		# Built files (JS, CSS, images): served directly
+		@asset file {path}
+		handle @asset {
+			@hashed path /assets/*
+			header @hashed Cache-Control "public, max-age=31536000, immutable"
+			header /images/* Cache-Control "public, max-age=2592000"
+			file_server
+		}
+
+		# Every page address goes to Django, which returns the page with its own meta tags,
+		# structured data and content, and a proper 404 for addresses that do not exist.
+		handle {
+			reverse_proxy backend:8000
+		}
+	}
+}

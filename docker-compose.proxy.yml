@@ -1,0 +1,16 @@
+# Override for servers where nginx (or another proxy) on the host already owns ports 80/443.
+# Enable it by adding this line to .env:
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.proxy.yml
+# The site is then available only on 127.0.0.1:${WEB_PORT:-8090}; the host proxy forwards the domain to it.
+services:
+  backend:
+    environment:
+      # host proxy + Caddy
+      DJANGO_NUM_PROXIES: "2"
+
+  web:
+    ports: !override
+      - "127.0.0.1:${WEB_PORT:-8090}:80"
+    volumes:
+      - ./Caddyfile.proxy:/etc/caddy/Caddyfile:ro
+      - media:/srv/media:ro

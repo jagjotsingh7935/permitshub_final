@@ -153,7 +153,17 @@ cp .env.example .env      # fill in the secrets, domain and email password
 docker compose up --build -d
 ```
 
-Caddy serves the React build, proxies `/api` and `/admin` to Django and gets the HTTPS certificate automatically. To update later: `git pull && docker compose up --build -d`. Data lives in the `pgdata` and `media` volumes. The enquiry email uses a Google app password for `permits@permitshub.com.au` (the domain's mail is on Google); add SPF and DKIM records so confirmations are not marked as spam. `vercel.json` is only needed if the frontend is hosted separately on Vercel; in that case set `VITE_API_URL` to the backend address and note that the server-rendered SEO tags only apply when pages are served through the Docker setup.
+Caddy serves the React build, proxies `/api` and `/admin` to Django and gets the HTTPS certificate automatically. If the server already has nginx (or another proxy) on ports 80/443, see "Behind an existing nginx" below instead. To update later: `git pull && docker compose up --build -d`. Data lives in the `pgdata` and `media` volumes. The enquiry email uses a Google app password for `permits@permitshub.com.au` (the domain's mail is on Google); add SPF and DKIM records so confirmations are not marked as spam. `vercel.json` is only needed if the frontend is hosted separately on Vercel; in that case set `VITE_API_URL` to the backend address and note that the server-rendered SEO tags only apply when pages are served through the Docker setup.
+
+### Behind an existing nginx
+
+When a proxy on the host already owns ports 80/443, add this line to `.env` (on Linux; separate files with `:`):
+
+```
+COMPOSE_FILE=docker-compose.yml:docker-compose.proxy.yml
+```
+
+`docker compose up --build -d` then publishes the site only on `127.0.0.1:8090` (change with `WEB_PORT`), and the host nginx forwards the domain to it and handles HTTPS (for example with certbot). The nginx server block must send `Host`, `X-Real-IP`, `X-Forwarded-For` and `X-Forwarded-Proto`.
 
 ### SEO and answer-engine optimisation
 
