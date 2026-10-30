@@ -10,6 +10,7 @@ from pathlib import Path
 from django.conf import settings
 from django.core.files import File
 from django.core.management.base import BaseCommand
+from django.db import transaction
 
 from api import seed_data as d
 from api.models import (
@@ -37,12 +38,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         fresh = not SiteSettings.objects.exists()
-        site = SiteSettings.load()
-        if fresh:
-            site.disclaimer = DEFAULT_DISCLAIMER
-            attach(site.logo, 'permits-hub-logo.webp')
-            site.save()
-            self.load_collections()
+        # All-or-nothing: if anything fails, nothing is kept and the next start tries again from scratch.
+        with transaction.atomic():
+            site = SiteSettings.load()
+            if fresh:
+                site.disclaimer = DEFAULT_DISCLAIMER
+                attach(site.logo, 'permits-hub-logo.webp')
+                site.save()
+                self.load_collections()
 
         self.sync_texts()
         self.sync_seo()

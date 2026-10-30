@@ -61,9 +61,9 @@ class SiteSettings(models.Model):
     logo = WebpImageField(upload_to='site/', blank=True, help_text='Logo shown in the header, footer and search results. WebP or SVG is stored; other formats are converted to WebP.')
     contact_email = models.EmailField('Public contact email', default='permits@permitshub.com.au')
     contact_phone = models.CharField('Public phone number', max_length=40, default='0409 198 597')
-    facebook_url = models.URLField('Facebook page', blank=True, default='https://www.facebook.com/abromacdevelopments')
+    facebook_url = models.URLField('Facebook page', max_length=300, blank=True, default='https://www.facebook.com/abromacdevelopments')
     disclaimer = models.TextField(help_text='Shown in the site footer and on the Services page.')
-    site_url = models.URLField('Website address', default='https://permitshub.com.au',
+    site_url = models.URLField('Website address', max_length=300, default='https://permitshub.com.au',
                                help_text='Full address with https and no trailing slash. Used in the sitemap, canonical links and structured data.')
     default_og_image = WebpImageField('Default social sharing image', upload_to='site/', blank=True,
                                       help_text='Shown when a page is shared on Facebook, LinkedIn etc. Ideally 1200×630.')
@@ -264,7 +264,7 @@ class ProjectMilestone(models.Model):
     label = models.CharField(max_length=160)
     detail = models.TextField()
     source_label = models.CharField(max_length=160, blank=True)
-    source_url = models.URLField(blank=True)
+    source_url = models.URLField(max_length=500, blank=True)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -290,7 +290,7 @@ class ProjectImage(models.Model):
 class ProjectSource(models.Model):
     project = models.ForeignKey(Project, related_name='sources', on_delete=models.CASCADE)
     label = models.CharField(max_length=160)
-    url = models.URLField()
+    url = models.URLField(max_length=500)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -393,7 +393,7 @@ class Region(Ordered):
     name = models.CharField(max_length=80)
     note = models.CharField(max_length=240)
     source_label = models.CharField(max_length=160, blank=True)
-    source_url = models.URLField(blank=True)
+    source_url = models.URLField(max_length=500, blank=True)
 
     class Meta(Ordered.Meta):
         verbose_name = 'Region'
@@ -424,7 +424,7 @@ class Chapter(Ordered):
     media_kind = models.CharField(max_length=10, choices=MEDIA, default='cta')
     media_title = models.CharField(max_length=160, blank=True)
     source_label = models.CharField(max_length=160, blank=True)
-    source_url = models.URLField(blank=True)
+    source_url = models.URLField(max_length=500, blank=True)
     checklist = models.TextField(blank=True, help_text='For "Tick list": ' + LINES_HELP)
     projects = models.ManyToManyField(Project, blank=True, related_name='chapters', help_text='For "Project cards".')
 
