@@ -12,10 +12,10 @@ from .models import (
 # key: (label, path, title, description) — used to seed the admin and as a fallback.
 PAGE_DEFAULTS = {
     'home': ('Home', '/', 'Town Planning & Planning Permits Victoria | Permits Hub',
-             "Melbourne town planning consultants with 16+ years' experience. Planning permits, subdivisions, due diligence and building permit documentation across Victoria."),
+             "Melbourne town planning consultants with 16+ years' experience. Planning permits, subdivisions, due diligence and building permits across Victoria."),
     'services': ('Services', '/services', 'Town Planning Services Melbourne & Victoria | Permits Hub',
                  'Due diligence, multi lot subdivisions, use and development permits, building permit documentation and construction-stage project management.'),
-    'projects': ('Projects', '/projects', 'Planning Permit Projects: Childcare & Commercial | Permits Hub',
+    'projects': ('Projects', '/projects', 'Planning Permit Projects in Victoria | Permits Hub',
                  'Selected planning approvals across Victoria, including childcare centres in Winchelsea and St Leonards and a swim school in Winter Valley, Ballarat.'),
     'about': ('About', '/about', 'About Permits Hub | Melbourne Town Planning Consultants',
               'All-in-one-stop development solutions from town planning to construction completion, backed by over 16 years of town planning experience.'),
@@ -118,7 +118,7 @@ def build_pages(c: Content):
         path = f'/projects/{project.slug}'
         pages[path] = Page(
             path=path,
-            title=project.meta_title or f'{plain(project.title)} – {project.place} | {c.brand()}',
+            title=project.meta_title or f'{plain(project.title)} | {c.brand()}',
             description=project.meta_description or clip(project.summary, 158),
             image=project.cover.url if project.cover else default_image,
             og_type='article',
@@ -294,8 +294,9 @@ def prerender(c: Content, page: Page):
         out.append(f'<h1>{escape(t("projects.hero.title"))}</h1><p>{escape(t("projects.hero.body"))}</p><h2>Categories</h2><ul>')
         out += [f'<li>{escape(x.title)} — {escape(x.summary)}</li>' for x in c.sectors if x.show_in_portfolio]
         out.append('</ul><h2>Projects</h2><ul>')
-        out += [f'<li>{a("/projects/" + p.slug, plain(p.title))} — {escape(p.place)}</li>' for p in c.projects]
-        out.append('</ul>')
+        out += [f'<li>{a("/projects/" + p.slug, plain(p.title))} — {escape(p.place)}. {escape(p.summary)}</li>' for p in c.projects]
+        out.append(f'</ul><h2>{escape(t("projects.role.title"))}</h2><h3>{escape(t("projects.role.col1_title"))}</h3><p>{escape(t("projects.role.col1_body"))}</p>')
+        out.append(f'<h3>{escape(t("projects.role.col2_title"))}</h3><p>{escape(t("projects.role.col2_body"))}</p>')
     elif path.startswith('/projects/'):
         p = next(x for x in c.projects if path == f'/projects/{x.slug}')
         img = ''
@@ -303,8 +304,20 @@ def prerender(c: Content, page: Page):
             img = f'<img src="{escape(p.cover.url)}" alt="{escape(p.cover_alt)}" width="{p.cover_width or ""}" height="{p.cover_height or ""}">'
         label = 'Public update' if p.record == 'verified' else 'Demo project (fictional)'
         out.append(f'<h1>{escape(plain(p.title))}</h1><p>{label} — {escape(p.sector.title if p.sector else "")} — {escape(p.place)}</p>{img}')
-        out.append(f'<h2>{escape(p.highlight)}</h2><p>{escape(p.summary)}</p><h2>Outcome</h2><p>{escape(p.outcome)}</p>')
-        out.append('<ul>' + ''.join(f'<li>{escape(i)}</li>' for i in lines(p.involvement)) + '</ul>')
+        title = escape(plain(p.title))
+        out.append(f'<h2>{escape(p.highlight)}: overview of {title}</h2><p>{escape(p.summary)}</p>')
+        facts = list(p.facts.all())
+        if facts:
+            out.append('<dl>' + ''.join(f'<dt>{escape(f.label)}</dt><dd>{escape(f.value)}</dd>' for f in facts) + '</dl>')
+        if lines(p.involvement):
+            out.append(f'<h2>What the update says about {title}</h2><ul>' + ''.join(f'<li>{escape(i)}</li>' for i in lines(p.involvement)) + '</ul>')
+        milestones = list(p.milestones.all())
+        if milestones:
+            out.append(f'<h2>Timeline for {title}</h2><ol>' + ''.join(f'<li><strong>{escape(m.label)}</strong> ({escape(m.when)}). {escape(m.detail)}</li>' for m in milestones) + '</ol>')
+        out.append(f'<h2>Outcome for {title}</h2><p>{escape(p.outcome)}</p><p>{escape(p.next_steps)}</p>')
+        if p.sector and lines(p.sector.considerations):
+            out.append(f'<h2>Typical considerations for {escape(p.sector.title.lower())} proposals</h2><ul>' + ''.join(f'<li>{escape(i)}</li>' for i in lines(p.sector.considerations)) + '</ul>')
+        out.append(f'<p>{a("/contact", t("cta.button"))}</p>')
     elif path == '/about':
         out.append(f'<h1>{escape(t("about.hero.title"))}</h1><p>{escape(t("about.hero.body"))}</p><h2>{escape(t("about.copy.title"))}</h2>')
         out.append(f'<p>{escape(t("about.copy.p1"))}</p><p>{escape(t("about.copy.p2"))}</p><h2>{escape(t("about.timeline.title"))}</h2><ol>')
@@ -318,10 +331,17 @@ def prerender(c: Content, page: Page):
         out.append(f'<h1>{escape(t("faqs.hero.title"))}</h1><p>{escape(t("faqs.hero.body"))}</p>')
         out.append(faq_html([f for f in c.faqs if f.placement == 'faqs']))
     elif path == '/contact':
-        out.append(f'<h1>{escape(t("contact.hero.title"))}</h1><p>{escape(t("contact.hero.body"))}</p><ul>')
+        out.append(f'<h1>{escape(t("contact.hero.title"))}</h1><p>{escape(t("contact.hero.body"))}</p><h2>{escape(t("contact.side.eyebrow"))}</h2><p>{escape(t("contact.side.body"))}</p><ul>')
         out.append(f'<li>Phone: <a href="tel:{escape("".join(ch for ch in s.contact_phone if ch.isdigit()))}">{escape(s.contact_phone)}</a></li>')
         out.append(f'<li>Email: <a href="mailto:{escape(s.contact_email)}">{escape(s.contact_email)}</a></li>')
         out.append(f'<li>Area: {escape(s.service_areas)}</li></ul>')
+        prepare = c.lists.get('contact_prepare', [])
+        if prepare:
+            out.append(f'<h2>{escape(t("contact.prepare.title"))}</h2><ul>' + ''.join(f'<li><strong>{escape(i.title)}</strong> {escape(i.body)}</li>' for i in prepare) + '</ul>')
+        after = c.lists.get('contact_after', [])
+        if after:
+            out.append(f'<h2>{escape(t("contact.next.title"))}</h2><ol>' + ''.join(f'<li><strong>{escape(i.title)}</strong> {escape(i.body)}</li>' for i in after) + '</ol>')
+        out.append(f'<h2>{escape(t("contact.faq.eyebrow"))}</h2>')
         out.append(faq_html([f for f in c.faqs if f.placement == 'contact'], 3))
 
     nav = ''.join(f'<li>{a(p, label)}</li>' for label, p in

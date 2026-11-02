@@ -6,6 +6,12 @@ Headings: press Enter for a new line and wrap words in *asterisks* for the highl
 
 H = 'Press Enter for a new line. Wrap words in *asterisks* to show them in the highlighted italic style.'
 
+# (key, old default, new default): applied on deploy only if staff have not edited the value.
+REVISIONS = [
+    ('home.intro.title', 'Town planning guidance for the places communities need, from the first site question to the next approval.',
+     'Town planning guidance for the places communities need.'),
+]
+
 TEXTS = [
     ('Global', [
         ('brand.tagline', 'Logo tagline', 'One Stop Development Solutions'),

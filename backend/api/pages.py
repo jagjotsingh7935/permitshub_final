@@ -46,7 +46,7 @@ def head_tags(c: Content, page, canonical):
         f'<title>{escape(page.title)}</title>',
         f'<meta name="description" content="{escape(page.description)}">',
         f'<link rel="canonical" href="{escape(canonical)}">',
-        f'<meta name="robots" content="{"noindex, nofollow" if page.noindex else "index, follow, max-image-preview:large"}">',
+        f'<meta name="robots" content="{"noindex, follow" if page.noindex else "index, follow, max-image-preview:large"}">',
         '<meta property="og:locale" content="en_AU">',
         f'<meta property="og:site_name" content="{escape(c.brand())}">',
         f'<meta property="og:type" content="{page.og_type}">',

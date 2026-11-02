@@ -6,7 +6,7 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 from PIL import Image, ImageOps
 
-MAX_WIDTH = 1920
+MAX_WIDTH = 1600
 ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']
 
 
@@ -22,7 +22,7 @@ def to_webp(file_obj):
     if image.width > MAX_WIDTH:
         image = image.resize((MAX_WIDTH, round(image.height * MAX_WIDTH / image.width)), Image.LANCZOS)
     buffer = io.BytesIO()
-    image.save(buffer, 'WEBP', quality=82, method=6)
+    image.save(buffer, 'WEBP', quality=76, method=6)
     return buffer.getvalue()
 
 

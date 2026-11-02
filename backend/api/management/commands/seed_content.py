@@ -20,8 +20,15 @@ from api.models import (
 )
 from api.seed_texts import TEXTS
 from api.seo import PAGE_DEFAULTS
+from api.seed_texts import REVISIONS
 
 SEED_IMAGES = Path(settings.BASE_DIR) / 'seed_images'
+
+# Old defaults that were replaced (page key -> field -> previous seeded value).
+SEO_REVISIONS = {
+    'projects': {'meta_title': 'Planning Permit Projects: Childcare & Commercial | Permits Hub'},
+    'home': {'meta_description': "Melbourne town planning consultants with 16+ years' experience. Planning permits, subdivisions, due diligence and building permit documentation across Victoria."},
+}
 
 
 def attach(field, filename):
@@ -67,6 +74,8 @@ class Command(BaseCommand):
                     TextBlock.objects.filter(pk=block.pk).update(section=section, label=label, help_text_note=hint, order=index)
                 index += 1
         TextBlock.objects.exclude(key__in=keys).delete()
+        for key, old, new in REVISIONS:
+            TextBlock.objects.filter(key=key, value=old).update(value=new)
 
     def sync_seo(self):
         for index, (key, (label, _path, title, description)) in enumerate(PAGE_DEFAULTS.items()):
@@ -75,6 +84,9 @@ class Command(BaseCommand):
             )
             if not created:
                 PageSEO.objects.filter(pk=row.pk).update(label=label, order=index)
+                # Move untouched defaults to the revised wording; edited values are left alone.
+                for field, old in (SEO_REVISIONS.get(key) or {}).items():
+                    PageSEO.objects.filter(pk=row.pk, **{field: old}).update(**{field: {'meta_title': title, 'meta_description': description}[field]})
 
     def sync_images(self, fresh):
         for index, (key, label, filename, alt, focus) in enumerate(d.SITE_IMAGES):

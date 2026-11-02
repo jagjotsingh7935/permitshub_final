@@ -4,6 +4,7 @@ set -e
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 python manage.py seed_content
+python manage.py optimize_images || true
 
 # Create the first admin login from .env (skipped if it already exists).
 if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ]; then
