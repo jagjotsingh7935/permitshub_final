@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import (
-    CONTENT_GROUPS, FAQ, Chapter, ContentItem, Enquiry, FAQCategory, FinderOption, ProjectTypeOption, Project,
+    CONTENT_GROUPS, FAQ, Chapter, ContentItem, Enquiry, FAQCategory, FinderOption, LandingPage, ProjectTypeOption, Project,
     Region, Sector, Service, SiteImage, SiteSettings, Stage, StageOption, TextBlock,
 )
 
@@ -44,6 +44,12 @@ def service_data(service: Service, number: int):
         'description': service.description,
         'icon': service.icon,
         'involves': service.involves,
+        'overview': paragraphs(service.overview),
+        'process': [
+            {'title': part[0].strip(), 'body': part[1].strip() if len(part) > 1 else ''}
+            for part in (line.split('|', 1) for line in lines(service.process))
+        ],
+        'faqs': [{'id': f'sfaq-{f.pk}', 'question': f.question, 'answer': f.answer} for f in service.faqs.all() if f.is_active],
         'whoFor': lines(service.who_for),
         'situations': lines(service.situations),
         'inputs': lines(service.inputs),
@@ -97,6 +103,15 @@ def project_data(project: Project):
     }
 
 
+def guide_data(guide: LandingPage):
+    return {
+        'slug': guide.slug, 'title': guide.title, 'intro': paragraphs(guide.intro),
+        'sections': [{'heading': s.heading, 'body': paragraphs(s.body), 'bullets': lines(s.bullets)} for s in guide.sections.all()],
+        'faqs': [{'id': f'gfaq-{f.pk}', 'question': f.question, 'answer': f.answer} for f in guide.faqs.all() if f.is_active],
+        'relatedProjects': [p.slug for p in guide.related_projects.all() if p.is_active],
+    }
+
+
 def chapter_data(chapter: Chapter):
     media = {'kind': chapter.media_kind}
     chapter_lines = list(chapter.lines.all())
@@ -116,7 +131,7 @@ def chapter_data(chapter: Chapter):
 
 
 def site_payload():
-    services = Service.objects.filter(is_active=True).prefetch_related('stages', 'related_projects')
+    services = Service.objects.filter(is_active=True).prefetch_related('stages', 'related_projects', 'faqs')
     projects = Project.objects.filter(is_active=True).select_related('sector').prefetch_related(
         'facts', 'milestones', 'gallery', 'sources')
     items = {}
@@ -150,6 +165,7 @@ def site_payload():
              'category': f.category.title if f.category else ''}
             for f in FAQ.objects.filter(is_active=True).select_related('category')
         ],
+        'guides': [guide_data(g) for g in LandingPage.objects.filter(is_active=True).prefetch_related('sections', 'faqs', 'related_projects')],
         'faqCategories': [c.title for c in FAQCategory.objects.filter(is_active=True)],
         'lists': items,
         'chapters': [chapter_data(c) for c in Chapter.objects.filter(is_active=True).prefetch_related('lines', 'projects')],

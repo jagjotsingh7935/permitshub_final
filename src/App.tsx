@@ -7,6 +7,8 @@ import Home from './pages/Home'
 
 // Home loads with the first bundle (its 3D scene is split separately). Other pages load on demand.
 const Services = lazy(() => import('./pages/Services'))
+const ServiceDetail = lazy(() => import('./pages/ServiceDetail'))
+const Guide = lazy(() => import('./pages/Guide'))
 const Projects = lazy(() => import('./pages/Projects'))
 const ProjectDetail = lazy(() => import('./pages/ProjectDetail'))
 const About = lazy(() => import('./pages/About'))
@@ -25,6 +27,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/services" element={<Services />} />
+            <Route path="/services/:slug" element={<ServiceDetail />} />
+            <Route path="/planning/:slug" element={<Guide />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:slug" element={<ProjectDetail />} />
             <Route path="/about" element={<About />} />

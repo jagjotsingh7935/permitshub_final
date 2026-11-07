@@ -11,6 +11,7 @@ import './styles/evolution.css'
 import './styles/sections.css'
 import './styles/about.css'
 import './styles/updates.css'
+import './styles/guides.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

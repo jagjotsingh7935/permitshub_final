@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from django.utils.html import escape
 
 from .models import (
-    FAQ, Chapter, ContentItem, PageSEO, Project, Region, Sector, Service, SiteSettings, TextBlock,
+    FAQ, Chapter, ContentItem, LandingPage, PageSEO, Project, Region, Sector, Service, SiteSettings, TextBlock,
 )
 
 # key: (label, path, title, description) — used to seed the admin and as a fallback.
@@ -41,6 +41,10 @@ def lines(text):
     return [line.strip() for line in (text or '').splitlines() if line.strip()]
 
 
+def paragraphs(text):
+    return [part.strip() for part in (text or '').replace('\r\n', '\n').split('\n\n') if part.strip()]
+
+
 @dataclass
 class Page:
     path: str
@@ -68,6 +72,7 @@ class Content:
         self.projects = list(Project.objects.filter(is_active=True).select_related('sector'))
         self.faqs = list(FAQ.objects.filter(is_active=True))
         self.chapters = list(Chapter.objects.filter(is_active=True))
+        self.guides = list(LandingPage.objects.filter(is_active=True).prefetch_related('sections', 'related_projects'))
         self.regions = list(Region.objects.filter(is_active=True))
         self.seo = {row.key: row for row in PageSEO.objects.all()}
         self.lists = {}
@@ -130,6 +135,30 @@ def build_pages(c: Content):
             published=project.update_date.isoformat() if project.update_date else '',
         )
 
+    for service in c.services:
+        path = f'/services/{service.slug}'
+        sfaqs = [f for f in c.faqs if f.service_id == service.id]
+        pages[path] = Page(
+            path=path,
+            title=service.meta_title or f'{plain(service.title)} | {c.brand()}',
+            description=service.meta_description or clip(service.description, 155),
+            image=default_image,
+            crumbs=[('Services', '/services'), (plain(service.title), path)],
+            nodes=[{'_kind': 'WebPage'}, service_node(c, service)] + ([faq_node(sfaqs)] if sfaqs else []),
+        )
+
+    for guide in c.guides:
+        path = f'/planning/{guide.slug}'
+        gfaqs = [f for f in c.faqs if f.landing_id == guide.id]
+        pages[path] = Page(
+            path=path,
+            title=guide.meta_title or f'{plain(guide.title)} | {c.brand()}',
+            description=guide.meta_description or clip(guide.intro, 155),
+            image=default_image,
+            crumbs=[('Planning guides', path), (plain(guide.title), path)][1:],
+            nodes=[{'_kind': 'WebPage'}] + ([faq_node(gfaqs)] if gfaqs else []),
+        )
+
     services_nodes = [{'_kind': 'CollectionPage'}, services_list_node(c)] + [service_node(c, s) for s in c.services]
     services_page.nodes += services_nodes
     projects_page.nodes.append({'_kind': 'CollectionPage'})
@@ -186,9 +215,9 @@ def website_node(c: Content):
 
 def service_node(c, service):
     return {
-        '@type': 'Service', '@id': c.url(f'/services#{service.slug}'),
+        '@type': 'Service', '@id': c.url(f'/services/{service.slug}#service'),
         'name': plain(service.title), 'description': clip(service.description, 300),
-        'url': c.url(f'/services#{service.slug}'), 'provider': org_ref(c),
+        'url': c.url(f'/services/{service.slug}'), 'provider': org_ref(c),
         'areaServed': {'@type': 'AdministrativeArea', 'name': 'Victoria, Australia'},
         'serviceType': plain(service.title).split(' – ')[0],
     }
@@ -198,7 +227,7 @@ def services_list_node(c):
     return {
         '@type': 'ItemList', 'name': 'Services',
         'itemListElement': [
-            {'@type': 'ListItem', 'position': i, 'url': c.url(f'/services#{s.slug}'), 'name': plain(s.title)}
+            {'@type': 'ListItem', 'position': i, 'url': c.url(f'/services/{s.slug}'), 'name': plain(s.title)}
             for i, s in enumerate(c.services, start=1)
         ],
     }
@@ -272,7 +301,7 @@ def prerender(c: Content, page: Page):
         out.append(f'<h1>{escape(t("home.hero.1.title"))}</h1><p>{escape(t("home.hero.1.body"))}</p>')
         out.append(f'<h2>{escape(t("home.intro.title"))}</h2><p>{escape(t("home.intro.p1"))}</p><p>{escape(t("home.intro.p2"))}</p>')
         out.append(f'<h2>{escape(t("home.services.title"))}</h2><p>{escape(t("home.services.body"))}</p><ul>')
-        out += [f'<li>{a("/services#" + sv.slug, plain(sv.title))} — {escape(sv.description)}</li>' for sv in c.services]
+        out += [f'<li>{a("/services/" + sv.slug, plain(sv.title))} — {escape(sv.description)}</li>' for sv in c.services]
         out.append('</ul>')
         out.append(f'<h2>{escape(t("home.projects.title"))}</h2><ul>')
         out += [f'<li>{a("/projects/" + p.slug, plain(p.title))} — {escape(p.place)}. {escape(p.summary)}</li>'
@@ -284,12 +313,40 @@ def prerender(c: Content, page: Page):
     elif path == '/services':
         out.append(f'<h1>{escape(t("services.hero.title"))}</h1><p>{escape(t("services.hero.body"))}</p>')
         for sv in c.services:
-            out.append(f'<h2 id="{escape(sv.slug)}">{escape(plain(sv.title))}</h2><p>{escape(sv.description)}</p><p>{escape(sv.involves)}</p>')
+            out.append(f'<h2 id="{escape(sv.slug)}">{a("/services/" + sv.slug, plain(sv.title))}</h2><p>{escape(sv.description)}</p><p>{escape(sv.involves)}</p>')
             out.append('<h3>Who it is for</h3><ul>' + ''.join(f'<li>{escape(i)}</li>' for i in lines(sv.who_for)) + '</ul>')
             out.append('<h3>Example deliverables</h3><ul>' + ''.join(f'<li>{escape(i)}</li>' for i in lines(sv.deliverables)) + '</ul>')
         out.append(f'<h2>{escape(t("services.faq.title"))}</h2>')
         out.append(faq_html([f for f in c.faqs if f.placement == 'services'], 3))
         out.append(f'<p>{escape(s.disclaimer)}</p>')
+    elif path.startswith('/services/'):
+        sv = next(x for x in c.services if path == f'/services/{x.slug}')
+        out.append(f'<h1>{escape(plain(sv.title))}</h1><p>{escape(sv.description)}</p>')
+        out.append(f'<h2>{escape(t("servicepage.overview"))}</h2>' + ''.join(f'<p>{escape(p)}</p>' for p in paragraphs(sv.overview)))
+        steps = [part.split('|', 1) for part in lines(sv.process)]
+        if steps:
+            out.append(f'<h2>{escape(t("servicepage.process"))}</h2><ol>' + ''.join(
+                f'<li><strong>{escape(x[0].strip())}</strong> {escape(x[1].strip()) if len(x) > 1 else ""}</li>' for x in steps) + '</ol>')
+        out.append(f'<h2>{escape(t("servicepage.who"))}</h2><ul>' + ''.join(f'<li>{escape(i)}</li>' for i in lines(sv.who_for)) + '</ul>')
+        out.append(f'<h2>{escape(t("servicepage.when"))}</h2><ul>' + ''.join(f'<li>{escape(i)}</li>' for i in lines(sv.situations)) + '</ul>')
+        out.append(f'<h2>{escape(t("servicepage.inputs"))}</h2><ul>' + ''.join(f'<li>{escape(i)}</li>' for i in lines(sv.inputs)) + '</ul>')
+        out.append(f'<h2>{escape(t("servicepage.deliverables"))}</h2><ul>' + ''.join(f'<li>{escape(i)}</li>' for i in lines(sv.deliverables)) + '</ul>')
+        sfaqs = [f for f in c.faqs if f.service_id == sv.id]
+        if sfaqs:
+            out.append(f'<h2>{escape(t("servicepage.faq"))}</h2>' + faq_html(sfaqs, 3))
+        out.append(f'<p>{escape(s.disclaimer)}</p><p>{a("/contact", t("servicepage.button"))}</p>')
+    elif path.startswith('/planning/'):
+        g = next(x for x in c.guides if path == f'/planning/{x.slug}')
+        out.append(f'<h1>{escape(plain(g.title))}</h1>' + ''.join(f'<p>{escape(p)}</p>' for p in paragraphs(g.intro)))
+        for sec in g.sections.all():
+            out.append(f'<h2>{escape(sec.heading)}</h2>' + ''.join(f'<p>{escape(p)}</p>' for p in paragraphs(sec.body)))
+            if lines(sec.bullets):
+                out.append('<ul>' + ''.join(f'<li>{escape(i)}</li>' for i in lines(sec.bullets)) + '</ul>')
+        gfaqs = [f for f in c.faqs if f.landing_id == g.id]
+        if gfaqs:
+            out.append(f'<h2>{escape(t("landing.faq"))}</h2>' + faq_html(gfaqs, 3))
+        out.append('<ul>' + ''.join(f'<li>{a("/projects/" + p.slug, plain(p.title))}</li>' for p in g.related_projects.all() if p.is_active) + '</ul>')
+        out.append(f'<p>{a("/contact", t("landing.button"))}</p>')
     elif path == '/projects':
         out.append(f'<h1>{escape(t("projects.hero.title"))}</h1><p>{escape(t("projects.hero.body"))}</p><h2>Categories</h2><ul>')
         out += [f'<li>{escape(x.title)} — {escape(x.summary)}</li>' for x in c.sectors if x.show_in_portfolio]
@@ -345,7 +402,8 @@ def prerender(c: Content, page: Page):
         out.append(faq_html([f for f in c.faqs if f.placement == 'contact'], 3))
 
     nav = ''.join(f'<li>{a(p, label)}</li>' for label, p in
-                  [('Services', '/services'), ('Projects', '/projects'), ('About', '/about'), ('FAQs', '/faqs'), ('Contact', '/contact')])
+                  [('Services', '/services'), ('Projects', '/projects'), ('About', '/about'), ('FAQs', '/faqs'), ('Contact', '/contact')]
+                  + [(plain(g.title), f'/planning/{g.slug}') for g in c.guides])
     return (f'<header><a href="/">{escape(c.brand())}</a><nav><ul>{nav}</ul></nav></header>'
             f'<main>{"".join(out)}</main>'
             f'<footer><p>{escape(c.brand())} — {escape(s.contact_email)} — {escape(s.contact_phone)}</p></footer>')

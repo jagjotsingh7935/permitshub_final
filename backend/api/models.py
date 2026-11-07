@@ -73,6 +73,7 @@ class SiteSettings(models.Model):
         max_length=300, default='Victoria, Melbourne, Ballarat, Greater Geelong, Surf Coast, Melton',
         help_text='Places you serve, separated by commas. Used in structured data for local search.',
     )
+    seed_version = models.PositiveSmallIntegerField(default=0, editable=False)
     notify_emails = models.CharField(
         'Send new enquiry alerts to', max_length=300, default='permits@permitshub.com.au',
         help_text='One or more email addresses, separated by commas.',
@@ -306,6 +307,8 @@ class Service(Ordered, SeoFields):
     )
     description = models.TextField('Short description')
     icon = models.CharField(max_length=40, choices=ICON_CHOICES, default='Compass')
+    overview = models.TextField('Overview (page introduction)', blank=True, help_text='Separate paragraphs with a blank line. Shown at the top of the service page.')
+    process = models.TextField('How it works (steps)', blank=True, help_text='One step per line, written as: Step title | short description')
     involves = models.TextField('What it involves')
     who_for = models.TextField('Who it’s for', help_text=LINES_HELP)
     situations = models.TextField('When it helps', help_text=LINES_HELP)
@@ -338,6 +341,39 @@ class FinderOption(Ordered):
         return self.prompt
 
 
+# ── Planning guides (landing pages) ────────────────────────────────────────
+
+class LandingPage(Ordered, SeoFields):
+    """A keyword-focused guide page at /planning/<slug>, for example childcare centre planning permits."""
+
+    slug = models.SlugField(unique=True, help_text='The page address: /planning/<slug>.')
+    title = models.CharField('Page heading (H1)', max_length=200, help_text='Wrap words in *asterisks* for the highlighted italic style.')
+    intro = models.TextField('Introduction', help_text='Separate paragraphs with a blank line.')
+    related_projects = models.ManyToManyField('Project', blank=True, related_name='guides', verbose_name='Related projects')
+
+    class Meta(Ordered.Meta):
+        verbose_name = 'Planning guide'
+        verbose_name_plural = 'Planning guides'
+
+    def __str__(self):
+        return self.title
+
+
+class LandingSection(models.Model):
+    landing = models.ForeignKey(LandingPage, related_name='sections', on_delete=models.CASCADE)
+    heading = models.CharField(max_length=200)
+    body = models.TextField(blank=True, help_text='Separate paragraphs with a blank line.')
+    bullets = models.TextField(blank=True, help_text=LINES_HELP)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'id']
+        verbose_name = 'Section'
+
+    def __str__(self):
+        return self.heading
+
+
 # ── FAQs ───────────────────────────────────────────────────────────────────
 
 class FAQCategory(Ordered):
@@ -352,7 +388,8 @@ class FAQCategory(Ordered):
 
 
 class FAQ(Ordered):
-    PLACEMENTS = [('faqs', 'FAQs page'), ('home', 'Home page'), ('services', 'Services page'), ('contact', 'Contact page')]
+    PLACEMENTS = [('faqs', 'FAQs page'), ('home', 'Home page'), ('services', 'Services page'), ('contact', 'Contact page'),
+                  ('service', 'A service page'), ('landing', 'A planning guide')]
 
     question = models.CharField(max_length=240)
     answer = models.TextField(help_text='Lead with a direct answer in the first sentence — search and AI answer engines quote it.')
@@ -360,6 +397,17 @@ class FAQ(Ordered):
                                  help_text='Which page shows this question. Use the FAQs page for the main list.')
     category = models.ForeignKey(FAQCategory, null=True, blank=True, on_delete=models.SET_NULL, related_name='faqs',
                                  help_text='Only used on the FAQs page filter.')
+    service = models.ForeignKey('Service', null=True, blank=True, on_delete=models.CASCADE, related_name='faqs',
+                                help_text='Set to show this question on one service page.')
+    landing = models.ForeignKey('LandingPage', null=True, blank=True, on_delete=models.CASCADE, related_name='faqs',
+                                help_text='Set to show this question on one planning guide.')
+
+    def save(self, *args, **kwargs):
+        if self.service_id:
+            self.placement = 'service'
+        elif self.landing_id:
+            self.placement = 'landing'
+        super().save(*args, **kwargs)
 
     class Meta(Ordered.Meta):
         verbose_name = 'FAQ'

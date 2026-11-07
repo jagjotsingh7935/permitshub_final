@@ -4,7 +4,7 @@ import { useSite } from '../../site/SiteProvider'
 import { Brand } from './Brand'
 
 export function Footer() {
-  const { t, settings, services } = useSite()
+  const { t, settings, services, guides } = useSite()
   const { contactEmail, contactPhone, contactPhoneHref, disclaimer, facebookUrl } = settings
   return (
     <footer className="site-footer">
@@ -21,7 +21,7 @@ export function Footer() {
           <div className="footer-nav">
             <div>
               <strong>{t('footer.col_services')}</strong>
-              {services.slice(0, 5).map(service => <Link key={service.id} to={`/services#${service.id}`}>{service.title}</Link>)}
+              {services.slice(0, 5).map(service => <Link key={service.id} to={`/services/${service.id}`}>{service.title}</Link>)}
             </div>
             <div>
               <strong>{t('footer.col_explore')}</strong>
@@ -29,6 +29,7 @@ export function Footer() {
               <Link to="/about">About Permits Hub</Link>
               <Link to="/services">{t('header.all_services')}</Link>
               <Link to="/faqs">FAQs</Link>
+              {guides.map(guide => <Link key={guide.slug} to={`/planning/${guide.slug}`}>{guide.title.replaceAll('*', '')}</Link>)}
             </div>
             <div>
               <strong>{t('footer.col_connect')}</strong>

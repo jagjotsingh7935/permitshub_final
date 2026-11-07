@@ -13,6 +13,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from api import seed_data as d
+from api.models import LandingPage, LandingSection
 from api.models import (
     CONTENT_GROUPS, DEFAULT_DISCLAIMER, FAQ, GROUP_MODELS, Chapter, ChapterLine, FAQCategory, FinderOption, PageSEO,
     Project, ProjectFact, ProjectImage, ProjectMilestone, ProjectSource, ProjectTypeOption, Region, Sector, Service,
@@ -20,9 +21,13 @@ from api.models import (
 )
 from api.seed_texts import TEXTS
 from api.seo import PAGE_DEFAULTS
+from api.seed_v2 import LANDING, SERVICE_EXTRA, TITLE_FIXES
 from api.seed_texts import REVISIONS
 
 SEED_IMAGES = Path(settings.BASE_DIR) / 'seed_images'
+
+# Bump when new starter content is added: it is applied once to existing installs.
+SEED_VERSION = 2
 
 # Old defaults that were replaced (page key -> field -> previous seeded value).
 SEO_REVISIONS = {
@@ -53,11 +58,42 @@ class Command(BaseCommand):
                 attach(site.logo, 'permits-hub-logo.webp')
                 site.save()
                 self.load_collections()
+            self.apply_v2(site)
 
         self.sync_texts()
         self.sync_seo()
         self.sync_images(fresh)
         self.stdout.write(self.style.SUCCESS(f'Content ready ({"fresh install" if fresh else "existing install"}).'))
+
+    def apply_v2(self, site):
+        """Service-page copy and the first planning guide. Fills blanks only; never overwrites edits."""
+        if site.seed_version >= SEED_VERSION:
+            return
+        for slug, extra in SERVICE_EXTRA.items():
+            service = Service.objects.filter(slug=slug).first()
+            if not service:
+                continue
+            if not service.overview:
+                service.overview = extra['overview']
+            if not service.process:
+                service.process = joined(extra['process'])
+            service.save()
+            if not service.faqs.exists():
+                for order, (question, answer) in enumerate(extra['faqs'], start=1):
+                    FAQ.objects.create(service=service, question=question, answer=answer, order=order)
+        for slug, (old, new) in TITLE_FIXES.items():
+            Service.objects.filter(slug=slug, meta_title=old).update(meta_title=new)
+        if not LandingPage.objects.filter(slug=LANDING['slug']).exists():
+            page = LandingPage.objects.create(
+                slug=LANDING['slug'], title=LANDING['title'], intro=LANDING['intro'], order=1,
+                meta_title=LANDING['meta_title'], meta_description=LANDING['meta_description'],
+            )
+            for order, (heading, body, bullets) in enumerate(LANDING['sections'], start=1):
+                LandingSection.objects.create(landing=page, heading=heading, body=body, bullets=joined(bullets), order=order)
+            for order, (question, answer) in enumerate(LANDING['faqs'], start=1):
+                FAQ.objects.create(landing=page, question=question, answer=answer, order=order)
+            page.related_projects.set(Project.objects.filter(slug__in=LANDING['projects']))
+        SiteSettings.objects.filter(pk=site.pk).update(seed_version=SEED_VERSION)
 
     def sync_texts(self):
         keys = []

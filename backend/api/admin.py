@@ -7,7 +7,7 @@ from unfold.admin import ModelAdmin, StackedInline, TabularInline
 from unfold.decorators import action, display
 
 from .models import (
-    CONTENT_GROUPS, FAQ, GROUP_MODELS, Chapter, ChapterLine, Enquiry, FAQCategory, FinderOption, PageSEO,
+    CONTENT_GROUPS, FAQ, GROUP_MODELS, LandingPage, LandingSection, Chapter, ChapterLine, Enquiry, FAQCategory, FinderOption, PageSEO,
     Project, ProjectFact, ProjectImage, ProjectMilestone, ProjectSource, ProjectTypeOption, Region, Sector, Service,
     SiteImage, SiteSettings, Stage, StageOption, TextBlock,
 )
@@ -167,14 +167,25 @@ class SiteImageAdmin(ModelAdmin):
 
 # ── Services ───────────────────────────────────────────────────────────────
 
+class ServiceFAQInline(TabularInline):
+    model = FAQ
+    fk_name = 'service'
+    extra = 0
+    fields = ['question', 'answer', 'order', 'is_active']
+    verbose_name = 'Question for this service page'
+    verbose_name_plural = 'Questions for this service page'
+
+
 @admin.register(Service)
 class ServiceAdmin(OrderedAdmin):
     list_display = ['title', 'slug', 'icon', 'order', 'is_active']
     prepopulated_fields = {'slug': ['title']}
     search_fields = ['title', 'description']
     filter_horizontal = ['stages', 'related_projects']
+    inlines = [ServiceFAQInline]
     fieldsets = [
         (None, {'fields': ['title', 'slug', 'icon', 'description', 'involves', 'conversation', 'enquiry_type']}),
+        ('Service page content', {'fields': ['overview', 'process']}),
         ('Lists', {'fields': ['who_for', 'situations', 'inputs', 'deliverables']}),
         ('Connections', {'fields': ['stages', 'related_projects']}),
         ('Display', {'fields': ['order', 'is_active']}),
@@ -246,6 +257,35 @@ class ProjectAdmin(OrderedAdmin):
     @display(description='')
     def thumb(self, obj):
         return thumbnail(obj.cover)
+
+
+# ── Planning guides ────────────────────────────────────────────────────────
+
+class LandingSectionInline(StackedInline):
+    model = LandingSection
+    extra = 0
+
+
+class GuideFAQInline(TabularInline):
+    model = FAQ
+    fk_name = 'landing'
+    extra = 0
+    fields = ['question', 'answer', 'order', 'is_active']
+    verbose_name = 'Question'
+    verbose_name_plural = 'Questions (also used for FAQ search results)'
+
+
+@admin.register(LandingPage)
+class LandingPageAdmin(OrderedAdmin):
+    list_display = ['title', 'slug', 'order', 'is_active']
+    prepopulated_fields = {'slug': ['title']}
+    filter_horizontal = ['related_projects']
+    inlines = [LandingSectionInline, GuideFAQInline]
+    fieldsets = [
+        (None, {'fields': ['title', 'slug', 'intro', 'related_projects']}),
+        ('Display', {'fields': ['order', 'is_active']}),
+        SEO_FIELDSET,
+    ]
 
 
 # ── FAQs ───────────────────────────────────────────────────────────────────

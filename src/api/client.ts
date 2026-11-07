@@ -22,6 +22,7 @@ export type SiteDto = {
   images: Record<string, { url: string; alt: string; position: string | null; width: number | null; height: number | null }>
   services: {
     id: string; number: string; title: string; description: string; icon: string; involves: string
+    overview: string[]; process: { title: string; body: string }[]; faqs: { id: string; question: string; answer: string }[]
     whoFor: string[]; situations: string[]; inputs: string[]; deliverables: string[]; conversation: string
     enquiryType: string; stages: string[]; relatedProjects: string[]
   }[]
@@ -42,6 +43,12 @@ export type SiteDto = {
     homeOrder: number | null
   }[]
   faqs: { id: string; question: string; answer: string; placement: 'faqs' | 'home' | 'services' | 'contact'; category: string }[]
+  guides: {
+    slug: string; title: string; intro: string[]
+    sections: { heading: string; body: string[]; bullets: string[] }[]
+    faqs: { id: string; question: string; answer: string }[]
+    relatedProjects: string[]
+  }[]
   faqCategories: string[]
   lists: Record<string, { title: string; body: string; detail: string; lines: string[] }[]>
   chapters: {

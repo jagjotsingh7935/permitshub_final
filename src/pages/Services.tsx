@@ -75,6 +75,7 @@ function ServiceBlock({ service, index }: { service: Service; index: number }) {
             <p className="service-block__lead">{service.description}</p>
             <h3>{t('services.block.involves')}</h3>
             <p className="service-block__involves">{service.involves}</p>
+            <Link to={`/services/${service.id}`} className="text-link">{service.title.split(' – ')[1] ?? service.title}: full guide <ArrowUpRight size={16} /></Link>
           </Reveal>
           <div className="service-block__lists">
             <Reveal>

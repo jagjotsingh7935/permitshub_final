@@ -19,6 +19,9 @@ export type Service = {
   description: string
   icon: LucideIcon
   involves: string
+  overview: string[]
+  process: { title: string; body: string }[]
+  faqs: Faq[]
   whoFor: string[]
   situations: string[]
   inputs: string[]
@@ -27,6 +30,15 @@ export type Service = {
   stages: JourneyStageId[]
   relatedProjects: string[]
   enquiryType: string
+}
+
+export type Guide = {
+  slug: string
+  title: string
+  intro: string[]
+  sections: { heading: string; body: string[]; bullets: string[] }[]
+  faqs: Faq[]
+  relatedProjects: string[]
 }
 
 export type ServiceFinderOption = { stage: JourneyStageId; prompt: string; answer: string; services: string[] }

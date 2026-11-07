@@ -180,6 +180,7 @@ UNFOLD = {
                 'separator': True,
                 'items': [
                     _nav('Services', 'home_repair_service', 'service'),
+                    _nav('Planning guides', 'menu_book', 'landingpage'),
                     _nav('Project stages', 'linear_scale', 'stage'),
                     _nav('Service finder', 'explore', 'finderoption'),
                     _nav('Who contributes', 'groups', 'serviceroles'),

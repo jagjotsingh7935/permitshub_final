@@ -17,7 +17,7 @@ function relatedTo(project: Project, projects: Project[]) {
 
 export default function ProjectDetail() {
   const { slug } = useParams()
-  const { t, rt, projects, sectors } = useSite()
+  const { t, rt, projects, sectors, guides } = useSite()
   const project = projects.find(item => item.slug === slug)
 
   if (!project) {
@@ -35,6 +35,7 @@ export default function ProjectDetail() {
 
   const verified = isVerified(project)
   const related = relatedTo(project, projects)
+  const guide = guides.find(item => item.relatedProjects.includes(project.slug))
   const considerations = sectors.find(sector => sector.title === project.category)?.considerations ?? []
 
   return (
@@ -158,6 +159,7 @@ export default function ProjectDetail() {
           <Reveal>
             <h2 id="typical-title">{t('project.typical_title')}</h2>
             <p>{t('project.typical_body').replace('{category}', project.category.toLowerCase())}</p>
+            {guide && <p><Link to={`/planning/${guide.slug}`} className="text-link">{guide.title.replaceAll('*', '')} <ArrowUpRight size={16} /></Link></p>}
           </Reveal>
           <RevealGroup as="ul" className="typical-considerations__list">
             {considerations.map(item => <RevealItem as="li" key={item}>{item}</RevealItem>)}

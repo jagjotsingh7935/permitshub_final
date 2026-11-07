@@ -42,6 +42,7 @@ function makeSite(data: SiteDto) {
     principles: list('about_principles').map(item => ({ title: item.title, body: item.body })),
     evolutionStages: list('about_evolution').map(item => ({ label: item.title, caption: item.body })),
     chapters: data.chapters.map(chapter => ({ ...chapter, media: chapter.media as unknown as ChapterMedia })) as Chapter[],
+    guides: data.guides,
     journeyStages: data.stages,
     serviceFinder: data.finder,
     publicRegions: data.regions,

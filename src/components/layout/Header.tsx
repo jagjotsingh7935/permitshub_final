@@ -37,7 +37,7 @@ export function Header() {
               <NavLink to={item.to}>{item.label}<ChevronDown size={14} aria-hidden="true" /></NavLink>
               <ul className="nav-dropdown" aria-label="Services">
                 {services.map(service => (
-                  <li key={service.id}><Link to={`/services#${service.id}`}><span>{service.number}</span>{service.title}</Link></li>
+                  <li key={service.id}><Link to={`/services/${service.id}`}><span>{service.number}</span>{service.title}</Link></li>
                 ))}
               </ul>
             </div>
@@ -60,7 +60,7 @@ export function Header() {
                   <ul className="mobile-nav__sub" id="mobile-services">
                     <li><NavLink to={item.to} onClick={() => setOpen(false)}>{t('header.all_services')}</NavLink></li>
                     {services.map(service => (
-                      <li key={service.id}><Link to={`/services#${service.id}`} onClick={() => setOpen(false)}><span>{service.number}</span>{service.title}</Link></li>
+                      <li key={service.id}><Link to={`/services/${service.id}`} onClick={() => setOpen(false)}><span>{service.number}</span>{service.title}</Link></li>
                     ))}
                   </ul>
                 )}
